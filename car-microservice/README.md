@@ -33,9 +33,12 @@ the wrong vehicle. Three things prevent it:
    missing. No id, no record.
 2. Images are stamped with that `sourceId` while still inside the same source
    object. Nothing is ever zipped together by array index afterwards.
-3. Cloudinary assets live at `ckauto/<sourceId>/<sourceId>_00`, so the storage
-   path itself identifies the car. `ImageService` also re-checks the id and
-   throws on a mismatch.
+3. Cloudinary assets live at `ckauto/<sourceId>/<sourceId>_<hash of photo URL>`,
+   so the storage path itself identifies the car. The name is never the photo's
+   position: uploads use `overwrite: false`, and on a name clash Cloudinary
+   silently returns the asset already there, so position-based names would hand
+   back an old photo when CKAuto inserts a new first one. `ImageService` also
+   re-checks the id and throws on a mismatch.
 
 Plus `raw_listings` keeps the original payload, so any record can be audited
 against exactly what the source sent.
@@ -71,9 +74,20 @@ so expect an hour or more. Later runs only fetch photos for new lots.
 cp .env.example .env    # fill it in
 npm install
 docker compose up -d    # mongo + redis, if you are not using hosted ones
-npm run ingest:once     # single run, no scheduler
+npm test                # unit tests: normaliser, catalogue mapping, config check
+npm run ingest:once     # one run and exit; needs MongoDB + Cloudinary, not Redis
 npm run start:dev       # service + daily cron at 04:00 KST
 ```
+
+Startup checks the configuration and refuses to boot with a list of every
+missing setting (MongoDB, CKAuto login, Cloudinary, plus Redis for the
+service).
+
+`GET /health` is public: 200 `{status:"ok",mongo,redis}` when both answer,
+503 within ~2 s when either does not. The Dockerfile and `railway.json` use it.
+
+Run **one** instance. The queue already guarantees a run is processed once,
+but there is no reason for a daily batch to have two workers polling CKAuto.
 
 ## Admin API
 

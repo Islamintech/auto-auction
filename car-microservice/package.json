@@ -7,7 +7,9 @@
     "start": "nest start",
     "start:dev": "nest start --watch",
     "start:prod": "node dist/main",
-    "ingest:once": "ts-node src/scripts/run-once.ts"
+    "ingest:once": "ts-node src/scripts/run-once.ts",
+    "test": "node -r ts-node/register --test test/normalizer.test.ts test/services.test.ts",
+    "typecheck": "tsc --noEmit -p ."
   },
   "dependencies": {
     "@nestjs/bullmq": "^10.2.0",

@@ -1,31 +1,18 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { MongooseModule } from '@nestjs/mongoose';
+import { ConfigService } from '@nestjs/config';
 import { BullModule } from '@nestjs/bullmq';
 
-import { RawListing, RawListingSchema } from './schemas/raw-listing.schema';
-import { Vehicle, VehicleSchema } from './schemas/vehicle.schema';
-import { SourceClientService } from './source/source-client.service';
-import { ImageService } from './images/image.service';
-import { TelegramService } from './notify/telegram.service';
-import { IngestionService } from './ingestion/ingestion.service';
+import { CoreModule } from './core.module';
 import { IngestionProcessor, INGEST_QUEUE } from './ingestion/ingestion.processor';
 import { IngestionScheduler } from './ingestion/ingestion.scheduler';
 import { AdminController } from './admin/admin.controller';
+import { HealthController } from './health/health.controller';
 import { AdminTokenGuard } from './auth/admin-token.guard';
-import { CatalogueService } from './catalogue/catalogue.service';
 
+/** The long-running service: core pipeline + Redis queue, daily schedule and HTTP API. */
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
-    MongooseModule.forRootAsync({
-      inject: [ConfigService],
-      useFactory: (c: ConfigService) => ({ uri: c.getOrThrow<string>('MONGODB_URI') }),
-    }),
-    MongooseModule.forFeature([
-      { name: RawListing.name, schema: RawListingSchema },
-      { name: Vehicle.name, schema: VehicleSchema },
-    ]),
+    CoreModule.forRoot({ service: true }),
     BullModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (c: ConfigService) => ({
@@ -34,16 +21,7 @@ import { CatalogueService } from './catalogue/catalogue.service';
     }),
     BullModule.registerQueue({ name: INGEST_QUEUE }),
   ],
-  controllers: [AdminController],
-  providers: [
-    AdminTokenGuard,
-    CatalogueService,
-    SourceClientService,
-    ImageService,
-    TelegramService,
-    IngestionService,
-    IngestionProcessor,
-    IngestionScheduler,
-  ],
+  controllers: [AdminController, HealthController],
+  providers: [AdminTokenGuard, IngestionProcessor, IngestionScheduler],
 })
 export class AppModule {}
