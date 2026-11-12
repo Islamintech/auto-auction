@@ -166,7 +166,15 @@ export class SourceClientService {
       await res.body.dump();
       throw new Error(`Image fetch failed (${res.statusCode}): ${url}`);
     }
+    // A 200 that is really an HTML error or login page must not end up on a
+    // car's listing as its "photo".
+    const type = String(res.headers['content-type'] ?? '');
+    if (!type.startsWith('image/')) {
+      await res.body.dump();
+      throw new Error(`Not an image (${type || 'no content-type'}): ${url}`);
+    }
     const buf = Buffer.from(await res.body.arrayBuffer());
+    if (!buf.length) throw new Error(`Empty image: ${url}`);
     await sleep(this.delayMs);
     return buf;
   }

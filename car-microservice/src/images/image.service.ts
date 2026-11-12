@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { createHash } from 'crypto';
 import { v2 as cloudinary } from 'cloudinary';
 import { SourceClientService } from '../source/source-client.service';
 import { NormalisedImage } from '../ingestion/normalizer';
@@ -36,6 +37,22 @@ export class ImageService {
   }
 
   /**
+   * Cloudinary name for one source photo: the vehicle's id plus a hash of the
+   * photo's own URL.
+   *
+   * Not its position. Uploads use overwrite:false, and on a name clash
+   * Cloudinary does not fail - it silently returns the asset already there. With
+   * position-based names, a seller inserting a new first photo would get the
+   * old first photo handed back for the new URL. A URL-derived name means the
+   * same photo always maps to the same asset (so a lost DB record re-links
+   * instead of duplicating) and a different photo can never collide.
+   */
+  static publicIdFor(sourceId: string, sourceUrl: string): string {
+    const digest = createHash('sha256').update(sourceUrl).digest('hex').slice(0, 16);
+    return `${sourceId}_${digest}`;
+  }
+
+  /**
    * Brings one vehicle's images in line with what the source currently lists.
    *
    * Uploads are matched by sourceUrl, so an image already in Cloudinary is
@@ -44,8 +61,8 @@ export class ImageService {
    * a first upload that failed, leaving the car with no photos at all, and
    * photos the seller added after we first saw the listing.
    *
-   * Images live in a folder named after the vehicle's sourceId, with the
-   * public_id carrying both the sourceId and the position. Even if a record
+   * Images live in a folder named after the vehicle's sourceId, named by
+   * publicIdFor(). Even if a record
    * were corrupted later, the asset path itself says which car it belongs to.
    */
   async syncForVehicle(
@@ -90,7 +107,7 @@ export class ImageService {
             .upload_stream(
               {
                 folder,
-                public_id: `${sourceId}_${String(img.order).padStart(2, '0')}`,
+                public_id: ImageService.publicIdFor(sourceId, img.sourceUrl),
                 overwrite: false,
                 resource_type: 'image',
                 context: { source_id: sourceId, source_url: img.sourceUrl },
@@ -100,11 +117,15 @@ export class ImageService {
             .end(bytes);
         });
 
-        stored.push({
-          ...img,
-          cloudinaryPublicId: result.public_id,
-          secureUrl: result.secure_url,
-        });
+        // The SDK resolves (not rejects) some failed responses, e.g. a 404 with
+        // no `error` field. Only an answer naming an https asset is a success.
+        const publicId = result?.public_id;
+        const secureUrl = result?.secure_url;
+        if (typeof publicId !== 'string' || typeof secureUrl !== 'string' || !secureUrl.startsWith('https://')) {
+          throw new Error(`Cloudinary returned no asset${result?.message ? `: ${result.message}` : ''}`);
+        }
+
+        stored.push({ ...img, cloudinaryPublicId: publicId, secureUrl });
         uploaded++;
       } catch (err) {
         this.log.error(`Image ${img.order} for ${sourceId} failed: ${(err as Error).message}`);

@@ -35,23 +35,41 @@ export class TelegramService {
     ];
     if (summary.samples.length) {
       lines.push('');
-      lines.push(...summary.samples.slice(0, 5).map((s) => `• ${s.label}`));
+      lines.push(...summary.samples.slice(0, 5).map((s) => `• ${TelegramService.escape(s.label)}`));
       if (summary.newCount > 5) lines.push(`…and ${summary.newCount - 5} more`);
     }
     if (panel) {
       lines.push('');
-      lines.push(`<a href="${panel}">Review in admin panel →</a>`);
+      lines.push(`<a href="${TelegramService.escape(panel)}">Review in admin panel →</a>`);
     }
 
-    await request(`https://api.telegram.org/bot${token}/sendMessage`, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({
-        chat_id: chatId,
-        text: lines.join('\n'),
-        parse_mode: 'HTML',
-        disable_web_page_preview: true,
-      }),
-    });
+    // A failed notification must not fail the run: the run is what gets retried,
+    // and retrying it means downloading the whole 18 MB snapshot again.
+    try {
+      const res = await request(`https://api.telegram.org/bot${token}/sendMessage`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: chatId,
+          text: lines.join('\n'),
+          parse_mode: 'HTML',
+          disable_web_page_preview: true,
+        }),
+        headersTimeout: 15_000,
+        bodyTimeout: 15_000,
+      });
+      const body = (await res.body.json().catch(() => ({}))) as { ok?: boolean; description?: string };
+      if (res.statusCode >= 400 || body.ok === false) {
+        // Never log the URL: it contains the bot token.
+        this.log.error(`Telegram rejected the notification (${res.statusCode}): ${body.description ?? 'no description'}`);
+      }
+    } catch (err) {
+      this.log.error(`Telegram notification failed: ${(err as Error).message}`);
+    }
+  }
+
+  /** Labels come from CKAuto; keep them from breaking Telegram's HTML parse mode. */
+  static escape(s: string): string {
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
 }
