@@ -231,6 +231,36 @@ class CarService {
         }
     }
 
+    /**
+     * Creates a catalogue car from an approved import, or returns the one an
+     * earlier call already created for the same (importSource, importId).
+     *
+     * Idempotent on purpose: the ingestion service retries when it cannot tell
+     * whether a call landed (timeout, dropped connection), and a retry must not
+     * list the same car twice.
+     */
+    public async importCar(input: CarInput): Promise<{ car: Car; created: boolean }> {
+        const key = { importSource: input.importSource, importId: input.importId };
+        const existing = await this.carModel.findOne(key).lean().exec();
+        if (existing) return { car: existing as unknown as Car, created: false };
+
+        try {
+            if (!String(input.carVin ?? '').trim()) delete input.carVin;
+            const car = await this.carModel.create(input);
+            return { car: car.toObject() as unknown as Car, created: true };
+        } catch (err: any) {
+            // Lost a race with a concurrent retry of the same import: hand back
+            // the car the other request created.
+            if (err?.code === 11000 && err?.keyPattern?.importId) {
+                const winner = await this.carModel.findOne(key).lean().exec();
+                if (winner) return { car: winner as unknown as Car, created: false };
+            }
+            console.log('Error, importCar:', err);
+            if (err?.code === 11000) throw this.duplicateKeyError(err);
+            throw new Errors(HttpCode.BAD_REQUEST, Message.CREATED_FAILED);
+        }
+    }
+
     public async updateChosenCar(id: string, input: CarUpdateInput): Promise<Car> {
         if (!mongoose.isValidObjectId(id))
             throw new Errors(HttpCode.BAD_REQUEST, Message.NO_DATA_FOUND);

@@ -21,6 +21,8 @@ export interface Car {
     carColor?: string;
     carDesc?: string;
     carImages: string[];
+    importSource?: string;
+    importId?: string;
     carViewCount: number;
     carLikeCount: number;
     carCommentCount: number;
@@ -45,6 +47,8 @@ export interface CarInput {
     carColor?: string;
     carDesc?: string;
     carImages: string[];
+    importSource?: string;
+    importId?: string;
 }
 
 export interface CarUpdateInput {

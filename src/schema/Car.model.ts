@@ -120,6 +120,20 @@ const carSchema = new Schema(
             type: Number,
             default: 0,
         },
+
+        // Set only on cars that came in through the ingestion microservice:
+        // which feed (e.g. "ckauto") and that feed's own id for the listing.
+        // Together they let a repeated import find the car it already made
+        // instead of creating a second one.
+        importSource: {
+            type: String,
+            trim: true,
+        },
+
+        importId: {
+            type: String,
+            trim: true,
+        },
     },
     { timestamps: true },
 );
@@ -137,5 +151,12 @@ carSchema.index({ carBrand: 1, carYear: 1, carTitle: 1 }, { unique: true });
 carSchema.index(
     { carVin: 1 },
     { unique: true, partialFilterExpression: { carVin: { $type: 'string' } } }
+);
+
+// One catalogue car per imported listing. Partial for the same reason as the VIN
+// index: hand-made cars have no import key and must not collide on null.
+carSchema.index(
+    { importSource: 1, importId: 1 },
+    { unique: true, partialFilterExpression: { importId: { $type: 'string' } } }
 );
 export default mongoose.model("Car", carSchema);
