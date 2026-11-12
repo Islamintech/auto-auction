@@ -1,0 +1,698 @@
+<%- include('includes/header') %>
+<%- include('includes/nav', { page: 'cars' }) %>
+
+<style>
+  .badge--gold {
+    background: rgba(251,191,36,0.1); color: #fbbf24;
+    border: 1px solid rgba(251,191,36,0.2);
+    padding: 2px 8px; font-family: var(--mono-font);
+    font-weight: 700; font-size: 0.65rem; letter-spacing: 0.05em; border-radius: 4px;
+  }
+  .custom-select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23fbbf24'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 0.75rem center; background-size: 1em 1em;
+  }
+  /* Readable native dropdown options */
+  select option {
+    background-color: rgb(var(--surface));
+    color: rgb(var(--on-surface));
+  }
+  select option:checked,
+  select option:hover {
+    background-color: rgb(var(--primary));
+    color: rgb(var(--background));
+  }
+  .upload-slot input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+
+  /* Responsive card-style tables on mobile */
+  @media (max-width: 768px) {
+    .responsive-table { border-collapse: separate; }
+    .responsive-table thead { display: none; }
+    .responsive-table,
+    .responsive-table tbody,
+    .responsive-table tr,
+    .responsive-table td { display: block; width: 100%; }
+
+    .responsive-table tbody { padding: 12px; }
+
+    .responsive-table tr.car-row,
+    .responsive-table tbody tr {
+      border: 1px solid rgb(var(--outline)) !important;
+      border-radius: 10px;
+      margin-bottom: 12px;
+      background: rgba(255,255,255,0.02);
+      overflow: hidden;
+    }
+
+    .responsive-table td {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      padding: 10px 16px !important;
+      text-align: right;
+      border-bottom: 1px solid rgb(var(--outline) / 0.4);
+    }
+    .responsive-table tr td:last-child { border-bottom: none; }
+
+    .responsive-table td::before {
+      content: attr(data-label);
+      font-family: var(--mono-font);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: rgb(var(--on-surface) / 0.4);
+      text-align: left;
+      flex-shrink: 0;
+    }
+    /* hide index column on mobile */
+    .responsive-table td[data-label="#"] { display: none; }
+    /* empty-state row stays full width */
+    .responsive-table td[colspan]::before { display: none; }
+    .responsive-table td[colspan] { text-align: center; justify-content: center; }
+  }
+</style>
+
+<body class="bg-background">
+<main class="pt-[60px] min-h-screen">
+  <div class="max-w-[1300px] mx-auto p-4 sm:p-6 lg:p-8">
+
+    <!-- Page Header -->
+    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4 mb-8">
+      <div>
+        <h1 class="text-2xl font-headline font-bold text-on-surface tracking-tight uppercase">Cars Management</h1>
+        <p class="text-on-surface-secondary text-xs font-mono mt-1 tracking-widest uppercase">Inventory & Listing Control</p>
+      </div>
+      <div class="flex gap-4 items-center">
+        <div class="flex flex-col items-end">
+          <span class="text-[10px] text-on-surface-faint uppercase font-mono">Total Units</span>
+          <span class="text-xl font-mono text-primary font-bold"><%= cars.length %></span>
+        </div>
+        <div class="w-px h-10 bg-outline mx-2"></div>
+        <div class="flex flex-col items-end">
+          <span class="text-[10px] text-on-surface-faint uppercase font-mono">Active Listings</span>
+          <span class="text-xl font-mono text-success font-bold">
+            <%= cars.filter(c => c.carStatus === 'ONSALE').length %>
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add New Car Form -->
+    <div class="mb-10 bg-surface rounded-card border border-outline overflow-hidden shadow-2xl">
+      <details class="group">
+        <summary class="list-none px-4 sm:px-8 py-5 cursor-pointer flex justify-between items-center hover:bg-white/[0.02] transition-colors border-b border-outline">
+          <div class="flex items-center gap-3 sm:gap-4">
+            <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20">
+              <span class="text-primary text-xl">+</span>
+            </div>
+            <div>
+              <h3 class="font-headline text-sm font-bold text-on-surface uppercase tracking-widest">Register New Vehicle</h3>
+              <p class="text-[10px] text-on-surface-secondary uppercase tracking-wider mt-0.5 font-mono">Create marketplace listing</p>
+            </div>
+          </div>
+          <span class="text-primary text-xl group-open:rotate-180 transition-transform">▾</span>
+        </summary>
+
+        <div class="p-4 sm:p-8">
+          <form
+            action="/admin/car/create"
+            method="POST"
+            enctype="multipart/form-data"
+            onsubmit="return validateCarForm()"
+            class="grid grid-cols-12 gap-x-6 lg:gap-x-8 gap-y-6"
+          >
+            <input name="carStatus" value="ONSALE" hidden />
+
+            <div class="col-span-12 lg:col-span-8 grid grid-cols-1 sm:grid-cols-2 gap-6">
+
+              <div class="sm:col-span-2">
+                <label class="block text-[10px] uppercase tracking-widest font-mono font-bold text-primary mb-2">Listing Title *</label>
+                <input name="carTitle" type="text" required
+                  class="w-full bg-black/40 border border-outline rounded-lg focus:border-primary text-on-surface px-4 py-3 text-sm outline-none transition-all"
+                  placeholder="e.g., 2024 Hyundai Sonata Premium" />
+              </div>
+
+              <div class="sm:col-span-2">
+                <label class="block text-[10px] uppercase tracking-widest font-mono font-bold text-primary mb-2">VIN</label>
+                <input name="carVin" type="text" maxlength="17"
+                  class="w-full bg-black/40 border border-outline rounded-lg focus:border-primary text-on-surface px-4 py-3 text-sm font-mono uppercase outline-none transition-all"
+                  placeholder="e.g., 1HGCM82633A004352" />
+              </div>
+
+              <div>
+                <label class="block text-[10px] uppercase tracking-widest font-mono font-bold text-primary mb-2">Manufacturer Brand *</label>
+                <select name="carBrand" required
+                  class="custom-select w-full bg-black/40 border border-outline rounded-lg focus:border-primary text-on-surface px-4 py-3 text-sm outline-none">
+                  <option value="">Select Brand</option>
+                  <% CarBrand.map(function(brand) { %>
+                    <option value="<%= brand %>"><%= brand.charAt(0) + brand.slice(1).toLowerCase() %></option>
+                  <% }) %>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-[10px] uppercase tracking-widest font-mono font-bold text-primary mb-2">Body Type *</label>
+                <select name="carType" required
+                  class="custom-select w-full bg-black/40 border border-outline rounded-lg focus:border-primary text-on-surface px-4 py-3 text-sm outline-none">
+                  <option value="">Select Type</option>
+                  <% CarType.map(function(t) { %>
+                    <option value="<%= t %>"><%= t.charAt(0) + t.slice(1).toLowerCase() %></option>
+                  <% }) %>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-[10px] uppercase tracking-widest font-mono font-bold text-primary mb-2">Condition *</label>
+                <select name="carCondition" id="carCondition" required
+                  class="custom-select w-full bg-black/40 border border-outline rounded-lg focus:border-primary text-on-surface px-4 py-3 text-sm outline-none">
+                  <% CarCondition.map(function(c) { %>
+                    <option value="<%= c %>"><%= c.charAt(0) + c.slice(1).toLowerCase() %></option>
+                  <% }) %>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-[10px] uppercase tracking-widest font-mono font-bold text-primary mb-2">Model Year *</label>
+                <input name="carYear" type="text" required
+                  class="w-full bg-black/40 border border-outline rounded-lg focus:border-primary text-on-surface px-4 py-3 text-sm font-mono outline-none"
+                  placeholder="e.g. 2024 or 2025/12" />
+              </div>
+
+              <div>
+                <label class="block text-[10px] uppercase tracking-widest font-mono font-bold text-primary mb-2">Mileage (KM) *</label>
+                <input name="carMileage" type="number" required min="0"
+                  class="w-full bg-black/40 border border-outline rounded-lg focus:border-primary text-on-surface px-4 py-3 text-sm font-mono outline-none"
+                  placeholder="0" />
+              </div>
+
+              <div>
+                <label class="block text-[10px] uppercase tracking-widest font-mono font-bold text-primary mb-2">Valuation (KRW) *</label>
+                <input name="carPrice" type="text" required data-usd-estimate-source
+                  class="w-full bg-black/40 border border-outline rounded-lg focus:border-primary text-primary font-bold px-4 py-3 text-sm font-mono outline-none"
+                  placeholder="e.g. 18,000,000 or 18,000,000~22,000,000" />
+                <p data-usd-estimate class="text-[9px] text-on-surface-faint font-mono italic mt-1">Estimated USD: enter a KRW price</p>
+              </div>
+
+              <div>
+                <label class="block text-[10px] uppercase tracking-widest font-mono font-bold text-primary mb-2">Color</label>
+                <select name="carColor"
+                  class="custom-select w-full bg-black/40 border border-outline rounded-lg focus:border-primary text-on-surface px-4 py-3 text-sm outline-none">
+                  <option value="">Select Color</option>
+                  <% CarColor.map(function(color) { %>
+                    <option value="<%= color %>"><%= color.charAt(0) + color.slice(1).toLowerCase() %></option>
+                  <% }) %>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-[10px] uppercase tracking-widest font-mono font-bold text-primary mb-2">Make</label>
+                <input name="carMake" type="text"
+                  class="w-full bg-black/40 border border-outline rounded-lg focus:border-primary text-on-surface px-4 py-3 text-sm outline-none"
+                  placeholder="e.g., Hyundai" />
+              </div>
+
+              <div>
+                <label class="block text-[10px] uppercase tracking-widest font-mono font-bold text-primary mb-2">Model</label>
+                <input name="carModel" type="text"
+                  class="w-full bg-black/40 border border-outline rounded-lg focus:border-primary text-on-surface px-4 py-3 text-sm outline-none"
+                  placeholder="e.g., Sonata" />
+              </div>
+
+              <div>
+                <label class="block text-[10px] uppercase tracking-widest font-mono font-bold text-primary mb-2">Fuel</label>
+                <select name="carFuel"
+                  class="custom-select w-full bg-black/40 border border-outline rounded-lg focus:border-primary text-on-surface px-4 py-3 text-sm outline-none">
+                  <% CarFuel.map(function(f) { %>
+                    <option value="<%= f %>"><%= f.charAt(0) + f.slice(1).toLowerCase() %></option>
+                  <% }) %>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-[10px] uppercase tracking-widest font-mono font-bold text-primary mb-2">Transmission</label>
+                <select name="carTransmission"
+                  class="custom-select w-full bg-black/40 border border-outline rounded-lg focus:border-primary text-on-surface px-4 py-3 text-sm outline-none">
+                  <% CarTransmission.map(function(t) { %>
+                    <option value="<%= t %>"><%= t.charAt(0) + t.slice(1).toLowerCase() %></option>
+                  <% }) %>
+                </select>
+              </div>
+
+              <div class="sm:col-span-2">
+                <label class="block text-[10px] uppercase tracking-widest font-mono font-bold text-primary mb-2">Description & Notes</label>
+                <textarea name="carDesc" rows="3"
+                  class="w-full bg-black/40 border border-outline rounded-lg focus:border-primary text-on-surface px-4 py-3 text-sm resize-none outline-none"
+                  placeholder="Technical specs, condition report, additional notes..."></textarea>
+              </div>
+
+            </div>
+
+            <!-- Image Upload -->
+            <div class="col-span-12 lg:col-span-4">
+              <label class="block text-[10px] uppercase tracking-widest font-mono font-bold text-primary mb-2">Vehicle Gallery (Max 10)</label>
+              <div class="relative upload-slot bg-black/40 border-2 border-dashed border-outline rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-primary/50 transition-colors group h-40 sm:h-44 mb-2">
+                <span class="text-on-surface-faint group-hover:text-primary text-3xl mb-1" id="cover-icon">📷</span>
+                <span class="text-[9px] uppercase font-mono text-on-surface-faint group-hover:text-primary tracking-widest">Cover Photo</span>
+                <img id="preview-1" class="absolute inset-0 w-full h-full object-cover rounded-lg" style="display:none" />
+                <input type="file" name="carImages" accept="image/*" required onchange="previewImage(this,1)" />
+              </div>
+              <div class="grid grid-cols-5 gap-2 mb-4">
+                <% for(var i = 2; i <= 10; i++) { %>
+                <div class="relative upload-slot bg-black/40 border border-outline rounded-lg aspect-square flex items-center justify-center cursor-pointer hover:border-primary/50 transition-colors">
+                  <span class="text-on-surface-faint text-xs" id="icon-<%= i %>">+</span>
+                  <img id="preview-<%= i %>" class="absolute inset-0 w-full h-full object-cover rounded-lg" style="display:none" />
+                  <input type="file" name="carImages" accept="image/*" data-index="<%= i %>" class="secondary-file-input absolute inset-0 opacity-0 cursor-pointer w-full h-full" />
+                </div>
+                <% } %>
+              </div>
+              <p class="text-[9px] text-on-surface-faint font-mono italic">Accepted: JPG, PNG, WEBP. Max 5MB per file.</p>
+            </div>
+
+            <!-- Actions -->
+            <div class="col-span-12 flex flex-col-reverse sm:flex-row gap-3 sm:justify-end border-t border-outline pt-6">
+              <button type="button" id="discard-btn"
+                class="w-full sm:w-auto px-8 py-3 rounded-lg border border-outline text-on-surface-secondary uppercase font-mono text-[10px] font-bold hover:bg-danger/10 hover:border-danger hover:text-danger transition-all">
+                Discard
+              </button>
+              <button type="submit"
+                class="w-full sm:w-auto px-10 py-3 rounded-lg bg-primary text-background uppercase font-mono text-[10px] font-bold hover:bg-primary/80 transition-all">
+                Save Entry
+              </button>
+            </div>
+
+          </form>
+        </div>
+      </details>
+    </div>
+
+    <!-- Cars Table -->
+    <div class="bg-surface rounded-card border border-outline overflow-hidden shadow-2xl">
+      <div class="px-4 sm:px-8 py-5 border-b border-outline flex flex-wrap justify-between items-center gap-3 bg-white/[0.01]">
+        <div class="flex items-center gap-3">
+          <span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+          <h3 class="font-headline text-xs font-bold tracking-[0.2em] uppercase text-on-surface">Active Inventory Listings</h3>
+        </div>
+        <input
+          type="text"
+          id="search-input"
+          oninput="filterCars()"
+          class="bg-black/40 border border-outline rounded-full pl-4 pr-4 py-1.5 text-xs text-on-surface focus:border-primary w-full sm:w-48 font-mono outline-none"
+          placeholder="Search model / brand..."
+        />
+      </div>
+
+      <div class="overflow-x-auto scrollbar-hide">
+        <table class="w-full text-left border-collapse responsive-table">
+          <thead>
+            <tr class="bg-black/20">
+              <th class="px-8 py-4 text-[11px] uppercase tracking-[0.08em] font-mono font-bold text-on-surface-faint">#</th>
+              <th class="px-4 py-4 text-[11px] uppercase tracking-[0.08em] font-mono font-bold text-on-surface-faint">Vehicle</th>
+              <th class="px-4 py-4 text-[11px] uppercase tracking-[0.08em] font-mono font-bold text-on-surface-faint">Brand</th>
+              <th class="px-4 py-4 text-[11px] uppercase tracking-[0.08em] font-mono font-bold text-on-surface-faint">Specs</th>
+              <th class="px-4 py-4 text-[11px] uppercase tracking-[0.08em] font-mono font-bold text-on-surface-faint">Price</th>
+              <th class="px-4 py-4 text-[11px] uppercase tracking-[0.08em] font-mono font-bold text-on-surface-faint">Stats</th>
+              <th class="px-4 py-4 text-[11px] uppercase tracking-[0.08em] font-mono font-bold text-on-surface-faint">Status</th>
+              <th class="px-8 py-4 text-[11px] uppercase tracking-[0.08em] font-mono font-bold text-on-surface-faint text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-outline" id="cars-tbody">
+            <% cars.map(function(car, key) { %>
+            <tr class="hover:bg-white/[0.03] transition-colors group car-row"
+              data-title="<%= car.carTitle?.toLowerCase() %>"
+              data-brand="<%= car.carBrand?.toLowerCase() %>"
+              data-car="<%= encodeURIComponent(JSON.stringify(car)) %>"
+            >
+              <td data-label="#" class="px-8 py-5 font-mono text-on-surface-faint text-xs"><%= String(key+1).padStart(2,'0') %></td>
+              <td data-label="Vehicle" class="px-4 py-5">
+                <div class="flex items-center gap-4">
+                  <div class="w-12 h-12 rounded bg-black overflow-hidden flex-shrink-0 border border-outline shadow-lg">
+                    <% if(car.carImages && car.carImages.length > 0) { %>
+                      <img src="<%= imgUrl(car.carImages[0]) %>" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt="<%= car.carTitle %>" />
+                    <% } else { %>
+                      <div class="w-full h-full flex items-center justify-center text-on-surface-faint text-lg">🚗</div>
+                    <% } %>
+                  </div>
+                  <div>
+                    <div class="font-bold text-base text-on-surface"><%= car.carTitle %></div>
+                    <div class="text-[10px] text-on-surface-faint font-mono uppercase"><%= car.carColor || '—' %></div>
+                  </div>
+                </div>
+              </td>
+              <td data-label="Brand" class="px-4 py-5"><span class="badge--gold"><%= car.carBrand %></span></td>
+              <td data-label="Specs" class="px-4 py-5">
+                <div class="text-sm text-on-surface-secondary">
+                  <span class="font-bold text-on-surface"><%= car.carYear %></span>
+                  •
+                  <span class="font-mono <%= car.carMileage === 0 ? 'text-success' : '' %>">
+                    <%= car.carMileage === 0 ? 'New (0 km)' : car.carMileage?.toLocaleString() + ' km' %>
+                  </span>
+                </div>
+                <div class="text-[10px] font-mono uppercase text-on-surface-faint mt-1">
+                  <%= car.carType || '—' %>
+                  <% if (car.carCondition === 'DAMAGED') { %>
+                    • <span class="text-danger font-bold">DAMAGED</span>
+                  <% } else { %>
+                    • <span class="text-success font-bold">INTACT</span>
+                  <% } %>
+                </div>
+              </td>
+              <td data-label="Price" class="px-4 py-5">
+                <div class="font-mono font-bold text-primary text-base">₩<%= car.carPrice %></div>
+              </td>
+              <td data-label="Stats" class="px-4 py-5">
+                <div class="text-xs text-on-surface-faint font-mono">
+                  <span>👁 <%= car.carViewCount %></span> &nbsp;
+                  <span>❤️ <%= car.carLikeCount %></span>
+                </div>
+              </td>
+              <td data-label="Status" class="px-4 py-5">
+                <select
+                  class="custom-select bg-black/40 border border-outline-gold text-primary text-xs font-bold uppercase rounded px-3 py-1.5 focus:border-primary outline-none w-32 cursor-pointer transition-all"
+                  id="<%= car._id %>"
+                  onchange="updateCarStatus(this)"
+                >
+                  <% CarStatus.map(function(status) { %>
+                    <option value="<%= status %>" <%= car.carStatus === status ? 'selected' : '' %>>
+                      <%= status.charAt(0) + status.slice(1).toLowerCase() %>
+                    </option>
+                  <% }) %>
+                </select>
+              </td>
+              <td data-label="Actions" class="px-8 py-5 text-right">
+                <button onclick="openEditCarModal(this)"
+                  class="p-2 rounded hover:bg-white/10 text-on-surface-secondary hover:text-primary transition-colors" title="Edit">
+                  Edit
+                </button>
+                <% if (car.carStatus === 'SOLD') { %>
+                <button onclick="openSaleModalFromRow(this)"
+                  class="p-2 rounded hover:bg-white/10 text-on-surface-secondary hover:text-success transition-colors" title="Edit sale record">
+                  Sale
+                </button>
+                <% } %>
+                <button onclick="deleteCar('<%= car._id %>')"
+                  class="p-2 rounded hover:bg-white/10 text-on-surface-secondary hover:text-danger transition-colors" title="Delete">
+                  🗑
+                </button>
+              </td>
+            </tr>
+            <% }) %>
+            <% if(cars.length === 0) { %>
+            <tr>
+              <td colspan="8" class="px-8 py-16 text-center text-on-surface-faint font-mono text-xs uppercase tracking-widest">
+                No vehicles found. Register your first car above.
+              </td>
+            </tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="px-8 py-5 bg-white/[0.01] border-t border-outline flex justify-between items-center">
+        <span class="text-[10px] uppercase tracking-widest font-mono font-bold text-on-surface-faint">
+          <%= cars.length %> Total Units
+        </span>
+      </div>
+    </div>
+
+    <!-- Sold Cars -->
+    <% var soldCars = cars.filter(function(c){ return c.carStatus === 'SOLD'; }); %>
+    <div class="mt-10 bg-surface rounded-card border border-outline overflow-hidden shadow-2xl">
+      <div class="px-4 sm:px-8 py-5 border-b border-outline flex flex-wrap justify-between items-center gap-3 bg-white/[0.01]">
+        <div class="flex items-center gap-3">
+          <span class="w-2 h-2 rounded-full bg-success"></span>
+          <h3 class="font-headline text-xs font-bold tracking-[0.2em] uppercase text-on-surface">Sold Cars</h3>
+        </div>
+        <div class="flex flex-col items-end">
+          <span class="text-[10px] text-on-surface-faint uppercase font-mono">Total Sold</span>
+          <span class="text-xl font-mono text-success font-bold"><%= soldCars.length %></span>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto scrollbar-hide">
+        <table class="w-full text-left border-collapse responsive-table">
+          <thead>
+            <tr class="bg-black/20">
+              <th class="px-8 py-4 text-[11px] uppercase tracking-[0.08em] font-mono font-bold text-on-surface-faint">#</th>
+              <th class="px-4 py-4 text-[11px] uppercase tracking-[0.08em] font-mono font-bold text-on-surface-faint">Vehicle</th>
+              <th class="px-4 py-4 text-[11px] uppercase tracking-[0.08em] font-mono font-bold text-on-surface-faint">VIN</th>
+              <th class="px-4 py-4 text-[11px] uppercase tracking-[0.08em] font-mono font-bold text-on-surface-faint">Buyer</th>
+              <th class="px-4 py-4 text-[11px] uppercase tracking-[0.08em] font-mono font-bold text-on-surface-faint">Sale Date</th>
+              <th class="px-4 py-4 text-[11px] uppercase tracking-[0.08em] font-mono font-bold text-on-surface-faint text-right">Sale Price</th>
+              <th class="px-8 py-4 text-[11px] uppercase tracking-[0.08em] font-mono font-bold text-on-surface-faint text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-outline">
+            <% soldCars.map(function(car, key) { %>
+            <tr class="hover:bg-white/[0.03] transition-colors"
+              data-car="<%= encodeURIComponent(JSON.stringify(car)) %>">
+              <td data-label="#" class="px-8 py-5 font-mono text-on-surface-faint text-xs"><%= String(key+1).padStart(2,'0') %></td>
+              <td data-label="Vehicle" class="px-4 py-5">
+                <div class="font-bold text-sm text-on-surface"><%= car.carTitle %></div>
+                <div class="text-[10px] text-on-surface-faint font-mono uppercase"><%= car.carBrand %> • <%= car.carYear %></div>
+              </td>
+              <td data-label="VIN" class="px-4 py-5 font-mono text-xs text-on-surface-secondary"><%= car.carVin || '—' %></td>
+              <td data-label="Buyer" class="px-4 py-5 text-sm text-on-surface"><%= car.buyerName || '—' %></td>
+              <td data-label="Sale Date" class="px-4 py-5 font-mono text-xs text-on-surface-secondary">
+                <%= car.saleDate ? new Date(car.saleDate).toISOString().slice(0,10) : '—' %>
+              </td>
+              <td data-label="Sale Price" class="px-4 py-5 text-right font-mono font-bold text-success text-base">
+                <%= car.salePrice != null ? '₩' + car.salePrice.toLocaleString() : '—' %>
+              </td>
+              <td data-label="Actions" class="px-8 py-5 text-right">
+                <button onclick="openSaleModalFromRow(this)"
+                  class="px-3 py-1.5 rounded border border-outline text-[10px] uppercase font-mono font-bold text-on-surface-secondary hover:border-success hover:text-success transition-colors">
+                  Edit Sale
+                </button>
+              </td>
+            </tr>
+            <% }) %>
+            <% if(soldCars.length === 0) { %>
+            <tr>
+              <td colspan="7" class="px-8 py-16 text-center text-on-surface-faint font-mono text-xs uppercase tracking-widest">
+                No sold cars yet. Mark a listing as Sold to record a sale.
+              </td>
+            </tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<div id="edit-car-modal" class="fixed inset-0 z-50 hidden">
+  <div class="absolute inset-0 bg-black/70" onclick="closeEditCarModal()"></div>
+  <div class="relative mx-auto mt-10 mb-10 w-[calc(100%-32px)] max-w-5xl bg-surface rounded-card border border-outline shadow-2xl max-h-[90vh] overflow-y-auto">
+    <div class="px-4 sm:px-8 py-5 border-b border-outline flex justify-between items-center">
+      <div>
+        <h3 class="font-headline text-sm font-bold text-on-surface uppercase tracking-widest">Update Vehicle Information</h3>
+        <p class="text-[10px] text-on-surface-secondary uppercase tracking-wider mt-0.5 font-mono">Edit listing details</p>
+      </div>
+      <button type="button" onclick="closeEditCarModal()" class="p-2 rounded hover:bg-white/10 text-on-surface-secondary hover:text-danger">X</button>
+    </div>
+
+    <form id="edit-car-form" class="p-4 sm:p-8 grid grid-cols-12 gap-x-6 lg:gap-x-8 gap-y-6">
+      <input type="hidden" name="_id" />
+
+      <div class="col-span-12 md:col-span-8 grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div class="sm:col-span-2">
+          <label class="block text-[10px] uppercase tracking-widest font-mono font-bold text-primary mb-2">Listing Title *</label>
+          <input name="carTitle" type="text" required class="w-full bg-black/40 border border-outline rounded-lg focus:border-primary text-on-surface px-4 py-3 text-sm outline-none" />
+        </div>
+
+        <div class="sm:col-span-2">
+          <label class="block text-[10px] uppercase tracking-widest font-mono font-bold text-primary mb-2">VIN</label>
+          <input name="carVin" type="text" maxlength="17" class="w-full bg-black/40 border border-outline rounded-lg focus:border-primary text-on-surface px-4 py-3 text-sm font-mono uppercase outline-none" />
+        </div>
+
+        <div>
+          <label class="block text-[10px] uppercase tracking-widest font-mono font-bold text-primary mb-2">Manufacturer Brand *</label>
+          <select name="carBrand" required class="custom-select w-full bg-black/40 border border-outline rounded-lg focus:border-primary text-on-surface px-4 py-3 text-sm outline-none">
+            <% CarBrand.map(function(brand) { %>
+              <option value="<%= brand %>"><%= brand.charAt(0) + brand.slice(1).toLowerCase() %></option>
+            <% }) %>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-[10px] uppercase tracking-widest font-mono font-bold text-primary mb-2">Body Type *</label>
+          <select name="carType" required class="custom-select w-full bg-black/40 border border-outline rounded-lg focus:border-primary text-on-surface px-4 py-3 text-sm outline-none">
+            <% CarType.map(function(t) { %>
+              <option value="<%= t %>"><%= t.charAt(0) + t.slice(1).toLowerCase() %></option>
+            <% }) %>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-[10px] uppercase tracking-widest font-mono font-bold text-primary mb-2">Condition *</label>
+          <select name="carCondition" id="edit-car-condition" required class="custom-select w-full bg-black/40 border border-outline rounded-lg focus:border-primary text-on-surface px-4 py-3 text-sm outline-none">
+            <% CarCondition.map(function(c) { %>
+              <option value="<%= c %>"><%= c.charAt(0) + c.slice(1).toLowerCase() %></option>
+            <% }) %>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-[10px] uppercase tracking-widest font-mono font-bold text-primary mb-2">Status *</label>
+          <select name="carStatus" required class="custom-select w-full bg-black/40 border border-outline rounded-lg focus:border-primary text-on-surface px-4 py-3 text-sm outline-none">
+            <% CarStatus.map(function(status) { %>
+              <option value="<%= status %>"><%= status.charAt(0) + status.slice(1).toLowerCase() %></option>
+            <% }) %>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-[10px] uppercase tracking-widest font-mono font-bold text-primary mb-2">Model Year *</label>
+          <input name="carYear" type="text" required class="w-full bg-black/40 border border-outline rounded-lg focus:border-primary text-on-surface px-4 py-3 text-sm font-mono outline-none" placeholder="e.g. 2024 or 2025/12" />
+        </div>
+
+        <div>
+          <label class="block text-[10px] uppercase tracking-widest font-mono font-bold text-primary mb-2">Mileage (KM) *</label>
+          <input name="carMileage" type="number" required min="0" class="w-full bg-black/40 border border-outline rounded-lg focus:border-primary text-on-surface px-4 py-3 text-sm font-mono outline-none" />
+        </div>
+
+        <div>
+          <label class="block text-[10px] uppercase tracking-widest font-mono font-bold text-primary mb-2">Valuation (KRW) *</label>
+          <input name="carPrice" type="text" required data-usd-estimate-source class="w-full bg-black/40 border border-outline rounded-lg focus:border-primary text-primary font-bold px-4 py-3 text-sm font-mono outline-none" placeholder="e.g. 18,000,000 or 18,000,000~22,000,000" />
+          <p data-usd-estimate class="text-[9px] text-on-surface-faint font-mono italic mt-1">Estimated USD: enter a KRW price</p>
+        </div>
+
+        <div>
+          <label class="block text-[10px] uppercase tracking-widest font-mono font-bold text-primary mb-2">Color</label>
+          <select name="carColor" class="custom-select w-full bg-black/40 border border-outline rounded-lg focus:border-primary text-on-surface px-4 py-3 text-sm outline-none">
+            <option value="">Select Color</option>
+            <% CarColor.map(function(color) { %>
+              <option value="<%= color %>"><%= color.charAt(0) + color.slice(1).toLowerCase() %></option>
+            <% }) %>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-[10px] uppercase tracking-widest font-mono font-bold text-primary mb-2">Make</label>
+          <input name="carMake" type="text" class="w-full bg-black/40 border border-outline rounded-lg focus:border-primary text-on-surface px-4 py-3 text-sm outline-none" />
+        </div>
+
+        <div>
+          <label class="block text-[10px] uppercase tracking-widest font-mono font-bold text-primary mb-2">Model</label>
+          <input name="carModel" type="text" class="w-full bg-black/40 border border-outline rounded-lg focus:border-primary text-on-surface px-4 py-3 text-sm outline-none" />
+        </div>
+
+        <div>
+          <label class="block text-[10px] uppercase tracking-widest font-mono font-bold text-primary mb-2">Fuel</label>
+          <select name="carFuel" class="custom-select w-full bg-black/40 border border-outline rounded-lg focus:border-primary text-on-surface px-4 py-3 text-sm outline-none">
+            <% CarFuel.map(function(f) { %>
+              <option value="<%= f %>"><%= f.charAt(0) + f.slice(1).toLowerCase() %></option>
+            <% }) %>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-[10px] uppercase tracking-widest font-mono font-bold text-primary mb-2">Transmission</label>
+          <select name="carTransmission" class="custom-select w-full bg-black/40 border border-outline rounded-lg focus:border-primary text-on-surface px-4 py-3 text-sm outline-none">
+            <% CarTransmission.map(function(t) { %>
+              <option value="<%= t %>"><%= t.charAt(0) + t.slice(1).toLowerCase() %></option>
+            <% }) %>
+          </select>
+        </div>
+
+        <!-- Sale record — only relevant while the car is marked Sold -->
+        <div id="edit-sale-fields" class="sm:col-span-2 hidden">
+          <div class="rounded-lg border border-success/30 bg-success/[0.04] p-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="sm:col-span-3">
+              <p class="text-[10px] uppercase tracking-widest font-mono font-bold text-success">Sale Record</p>
+              <p class="text-[9px] text-on-surface-faint font-mono italic mt-0.5">Buyers verify these values publicly by VIN.</p>
+            </div>
+            <div>
+              <label class="block text-[10px] uppercase tracking-widest font-mono font-bold text-primary mb-2">Buyer Name</label>
+              <input name="buyerName" type="text" class="w-full bg-black/40 border border-outline rounded-lg focus:border-primary text-on-surface px-4 py-3 text-sm outline-none" />
+            </div>
+            <div>
+              <label class="block text-[10px] uppercase tracking-widest font-mono font-bold text-primary mb-2">Sale Price (KRW)</label>
+              <input name="salePrice" type="number" min="0" class="w-full bg-black/40 border border-outline rounded-lg focus:border-primary text-primary font-bold px-4 py-3 text-sm font-mono outline-none" placeholder="18000000" />
+            </div>
+            <div>
+              <label class="block text-[10px] uppercase tracking-widest font-mono font-bold text-primary mb-2">Sale Date</label>
+              <input name="saleDate" type="date" class="w-full bg-black/40 border border-outline rounded-lg focus:border-primary text-on-surface px-4 py-3 text-sm font-mono outline-none" />
+            </div>
+          </div>
+        </div>
+
+        <div class="sm:col-span-2">
+          <label class="block text-[10px] uppercase tracking-widest font-mono font-bold text-primary mb-2">Description & Notes</label>
+          <textarea name="carDesc" rows="4" class="w-full bg-black/40 border border-outline rounded-lg focus:border-primary text-on-surface px-4 py-3 text-sm resize-none outline-none"></textarea>
+        </div>
+      </div>
+
+      <div class="col-span-12 md:col-span-4">
+        <label class="block text-[10px] uppercase tracking-widest font-mono font-bold text-primary mb-2">Current Gallery</label>
+        <div id="edit-car-images" class="grid grid-cols-2 gap-2 mb-6"></div>
+        <p class="text-[9px] text-on-surface-faint font-mono italic">This update edits listing information. Gallery replacement can be added separately if needed.</p>
+      </div>
+
+      <!-- Actions -->
+      <div class="col-span-12 flex flex-col-reverse sm:flex-row gap-3 sm:justify-end border-t border-outline pt-6">
+        <button type="button" onclick="closeEditCarModal()" class="w-full sm:w-auto px-8 py-3 rounded-lg border border-outline text-on-surface-secondary uppercase font-mono text-[10px] font-bold hover:bg-white/10 transition-all">Cancel</button>
+        <button type="submit" class="w-full sm:w-auto px-10 py-3 rounded-lg bg-primary text-background uppercase font-mono text-[10px] font-bold hover:bg-primary/80 transition-all">Update Info</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Record Sale Modal -->
+<div id="sale-modal" class="fixed inset-0 z-50 hidden">
+  <div class="absolute inset-0 bg-black/70" onclick="closeSaleModal()"></div>
+  <div class="relative mx-auto mt-10 sm:mt-24 mb-10 w-[calc(100%-32px)] max-w-md bg-surface rounded-card border border-outline shadow-2xl max-h-[90vh] overflow-y-auto">
+    <div class="px-4 sm:px-8 py-5 border-b border-outline flex justify-between items-center">
+      <div>
+        <h3 class="font-headline text-sm font-bold text-on-surface uppercase tracking-widest">Record Sale</h3>
+        <p class="text-[10px] text-on-surface-secondary uppercase tracking-wider mt-0.5 font-mono">Mark vehicle as sold</p>
+      </div>
+      <button type="button" onclick="closeSaleModal()" class="p-2 rounded hover:bg-white/10 text-on-surface-secondary hover:text-danger">X</button>
+    </div>
+
+    <form id="sale-form" class="p-4 sm:p-8 space-y-6">
+      <input type="hidden" name="_id" />
+      <p id="sale-car-title" class="text-sm font-bold text-on-surface"></p>
+
+      <div>
+        <label class="block text-[10px] uppercase tracking-widest font-mono font-bold text-primary mb-2">VIN *</label>
+        <input name="carVin" type="text" maxlength="17" required
+          class="w-full bg-black/40 border border-outline rounded-lg focus:border-primary text-on-surface px-4 py-3 text-sm font-mono uppercase outline-none"
+          placeholder="e.g., 1HGCM82633A004352" />
+        <p class="text-[9px] text-on-surface-faint font-mono italic mt-1">Buyers can verify this sale publicly using the VIN.</p>
+      </div>
+
+      <div>
+        <label class="block text-[10px] uppercase tracking-widest font-mono font-bold text-primary mb-2">Buyer Name *</label>
+        <input name="buyerName" type="text" required
+          class="w-full bg-black/40 border border-outline rounded-lg focus:border-primary text-on-surface px-4 py-3 text-sm outline-none"
+          placeholder="e.g., John Doe" />
+      </div>
+
+      <div>
+        <label class="block text-[10px] uppercase tracking-widest font-mono font-bold text-primary mb-2">Sale Price (KRW) *</label>
+        <input name="salePrice" type="number" min="0" required
+          class="w-full bg-black/40 border border-outline rounded-lg focus:border-primary text-primary font-bold px-4 py-3 text-sm font-mono outline-none"
+          placeholder="18000000" />
+      </div>
+
+      <div>
+        <label class="block text-[10px] uppercase tracking-widest font-mono font-bold text-primary mb-2">Sale Date *</label>
+        <input name="saleDate" type="date" required
+          class="w-full bg-black/40 border border-outline rounded-lg focus:border-primary text-on-surface px-4 py-3 text-sm font-mono outline-none" />
+      </div>
+
+      <div class="flex gap-3 pt-2">
+        <button type="button" onclick="closeSaleModal()" class="flex-1 py-3 rounded-lg border border-outline text-on-surface-secondary uppercase font-mono text-[10px] font-bold hover:bg-white/10 transition-all">Cancel</button>
+        <button type="submit" class="flex-[2] py-3 rounded-lg bg-success text-background uppercase font-mono text-[10px] font-bold hover:bg-success/80 transition-all">Confirm Sale</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="/js/cars.js"></script>
+</body>
+<%- include('includes/footer') %>

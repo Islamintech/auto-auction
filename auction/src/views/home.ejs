@@ -1,0 +1,73 @@
+<%- include('includes/header') %>
+<%- include('includes/nav', { page: 'home' }) %>
+<link rel="stylesheet" type="text/css" href="/css/home.css" />
+
+<body>
+  <div class="home-container">
+
+    <% if(!member) { %>
+
+    <!-- Guest Hero -->
+    <div class="hero-guest">
+      <h1 class="vault-title"><span>AUTO</span><em>AUCTION</em></h1>
+      <p class="vault-sub">ADMIN MANAGEMENT INTERFACE</p>
+      <div class="guest-actions">
+        <a href="/admin/login" class="btn btn--primary">Login to Dashboard</a>
+        <a href="/admin/signup" class="btn btn--ghost">Create Account</a>
+      </div>
+    </div>
+
+    <% } else { %>
+
+    <!-- Dashboard -->
+    <div class="dashboard">
+
+      <div class="dash-hero">
+        <h1 class="vault-title"><span>AUTO</span><em>AUCTION</em></h1>
+        <p class="vault-sub">ADMIN MANAGEMENT INTERFACE</p>
+      </div>
+
+      <!-- Stat Cards -->
+      <div class="stat-cards">
+        <a href="/admin/car/all" class="stat-card">
+          <div class="stat-card-top">
+            <div class="stat-card-icon">🚗</div>
+            <div class="stat-card-label">LIVE INVENTORY</div>
+          </div>
+          <div class="stat-card-value"><%= stats ? stats.cars : '—' %></div>
+          <div class="stat-card-sub">↗ total cars</div>
+        </a>
+        <a href="/admin/member/all" class="stat-card">
+          <div class="stat-card-top">
+            <div class="stat-card-icon">👤</div>
+            <div class="stat-card-label">ACTIVE MEMBERS</div>
+          </div>
+          <div class="stat-card-value"><%= stats ? stats.members : '—' %></div>
+          <div class="stat-card-sub">↗ registered users</div>
+        </a>
+        <a href="/admin/consultation/all" class="stat-card">
+          <div class="stat-card-top">
+            <div class="stat-card-icon">💬</div>
+            <div class="stat-card-label">CONSULTATIONS</div>
+          </div>
+          <div class="stat-card-value"><%= stats ? stats.consultations : '—' %></div>
+          <div class="stat-card-sub">● <%= stats ? stats.pending : 0 %> pending</div>
+        </a>
+        <a href="/admin/post/all" class="stat-card">
+          <div class="stat-card-top">
+            <div class="stat-card-icon">📝</div>
+            <div class="stat-card-label">EDITORIAL POSTS</div>
+          </div>
+          <div class="stat-card-value"><%= stats ? stats.posts : '—' %></div>
+          <div class="stat-card-sub">↗ active posts</div>
+        </a>
+      </div>
+
+    </div>
+    <% } %>
+  </div>
+
+  <script type="text/javascript" src="/js/home.js"></script>
+</body>
+
+<%- include('includes/footer') %>

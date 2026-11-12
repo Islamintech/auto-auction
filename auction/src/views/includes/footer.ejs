@@ -1,0 +1,11 @@
+<script>
+  function toggleTheme() {
+    var isDark = document.documentElement.classList.toggle('dark');
+    var t = isDark ? 'dark' : 'light';
+    document.documentElement.dataset.theme = t;
+    try { localStorage.setItem('theme', t); } catch (e) {}
+  }
+</script>
+<script type="text/javascript" src="/js/main.js"></script>
+</body>
+</html>

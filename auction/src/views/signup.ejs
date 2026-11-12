@@ -1,0 +1,127 @@
+<%- include('includes/header') %>
+
+<link rel="stylesheet" type="text/css" href="/css/signup.css" />
+
+<body>
+  <div class="signup-page">
+
+    <!-- Left Panel -->
+    <div class="signup-left">
+      <a href="/admin" class="back-link">← Back to Home</a>
+      <div class="login-brand">
+        <span class="brand-icon">⬡</span>
+        <span class="brand-name">AUTOAUCTION</span>
+      </div>
+      <p class="login-tagline">Korea-Based Car Export Platform</p>
+      <div class="left-note">
+        <div class="note-item">✓ Manage cars and listings</div>
+        <div class="note-item">✓ Handle buyer consultations</div>
+        <div class="note-item">✓ Moderate community content</div>
+        <div class="note-item">✓ Track member activity</div>
+      </div>
+    </div>
+
+    <!-- Right Panel -->
+    <div class="signup-right">
+      <form
+        class="signup-form"
+        action="/admin/signup"
+        method="POST"
+        enctype="multipart/form-data"
+        onsubmit="return validateSignupForm()"
+      >
+        <div class="form-header">
+          <h1 class="form-title">Create Admin Account</h1>
+          <p class="form-subtitle">
+            Already have an account?
+            <a href="/admin/login">Login</a>
+          </p>
+        </div>
+
+        <!-- Row 1 -->
+        <div class="form-row">
+          <div class="form-group">
+            <label for="memberNick">Username *</label>
+            <input
+              id="memberNick"
+              type="text"
+              name="memberNick"
+              placeholder="Enter username"
+              required
+              autocomplete="username"
+            />
+          </div>
+          <div class="form-group">
+            <label for="memberPhone">Phone *</label>
+            <input
+              id="memberPhone"
+              type="text"
+              name="memberPhone"
+              placeholder="+82 10 0000 0000"
+              required
+            />
+          </div>
+        </div>
+
+        <!-- Row 2 -->
+        <div class="form-row">
+          <div class="form-group">
+            <label for="memberPassword">Password *</label>
+            <input
+              id="memberPassword"
+              type="password"
+              name="memberPassword"
+              placeholder="Enter password"
+              required
+              autocomplete="new-password"
+            />
+          </div>
+          <div class="form-group">
+            <label for="confirmPassword">Confirm Password *</label>
+            <input
+              id="confirmPassword"
+              type="password"
+              name="confirmPassword"
+              placeholder="Repeat password"
+              required
+              autocomplete="new-password"
+            />
+          </div>
+        </div>
+
+        <!-- Profile Image -->
+        <div class="form-group form-group--full">
+          <label>Profile Image</label>
+          <div class="image-upload-area" id="image-upload-area">
+            <img
+              src="/img/logo.png"
+              id="image-preview"
+              class="image-preview"
+            />
+            <div class="image-upload-text">
+              <p class="upload-main">Click to upload profile image</p>
+              <p class="upload-sub">JPG, JPEG or PNG only</p>
+            </div>
+            <input
+              type="file"
+              id="input-file"
+              name="memberImage"
+              accept=".jpg,.jpeg,.png"
+              onchange="previewProfileImage(this)"
+            />
+          </div>
+        </div>
+
+        <input name="memberType" value="ADMIN" hidden />
+
+        <button type="submit" class="submit-btn">Create Account</button>
+
+      </form>
+    </div>
+
+  </div>
+
+  <script type="text/javascript" src="/js/signup.js"></script>
+</body>
+
+<%- include('includes/footer') %>

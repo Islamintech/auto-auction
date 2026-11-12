@@ -1,0 +1,25 @@
+export enum PointAction {
+    SIGNUP = 'SIGNUP',
+    DAILY_LOGIN = 'DAILY_LOGIN',
+    VIEW_CAR = 'VIEW_CAR',
+    LIKE_CAR = 'LIKE_CAR',
+    COMMENT_CAR = 'COMMENT_CAR',
+    CREATE_POST = 'CREATE_POST',
+    LIKE_POST = 'LIKE_POST',
+    COMMENT_POST = 'COMMENT_POST',
+    ASK_QNA = 'ASK_QNA',
+    REQUEST_CONSULTATION = 'REQUEST_CONSULTATION',
+}
+
+export enum PointValue {
+    SIGNUP = 50,
+    DAILY_LOGIN = 5,
+    VIEW_CAR = 1,
+    LIKE_CAR = 3,
+    COMMENT_CAR = 5,
+    CREATE_POST = 10,
+    LIKE_POST = 4,
+    COMMENT_POST = 4,
+    ASK_QNA = 5,
+    REQUEST_CONSULTATION = 10,
+}

@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AutoAuction - Admin Panel</title>
+    <link rel="icon" type="image/png" href="/img/favicon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet" />
+    <script>
+      // Apply theme before paint to avoid flash
+      (function () {
+        try {
+          var t = localStorage.getItem('theme');
+          if (!t) t = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+          document.documentElement.classList.toggle('dark', t === 'dark');
+          document.documentElement.dataset.theme = t;
+        } catch (e) {}
+      })();
+    </script>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary":                "rgb(var(--primary) / <alpha-value>)",
+              "background":             "rgb(var(--background) / <alpha-value>)",
+              "surface":                "rgb(var(--surface) / <alpha-value>)",
+              "surface-container-low":  "rgb(var(--surface) / <alpha-value>)",
+              "surface-container":      "rgb(var(--surface-container) / <alpha-value>)",
+              "surface-bright":         "rgb(var(--surface-bright) / <alpha-value>)",
+              "on-surface":             "rgb(var(--on-surface) / <alpha-value>)",
+              "on-surface-secondary":   "rgb(var(--on-surface) / 0.65)",
+              "on-surface-faint":       "rgb(var(--on-surface) / 0.35)",
+              "outline":                "rgb(var(--outline) / <alpha-value>)",
+              "outline-gold":           "rgb(var(--primary) / 0.2)",
+              "success":                "#34d399",
+              "danger":                 "#f87171",
+            },
+            borderRadius: { DEFAULT: "8px", card: "12px" },
+            fontFamily: {
+              headline: ["Inter", "Noto Sans KR", "system-ui", "sans-serif"],
+              body:     ["Inter", "Noto Sans KR", "system-ui", "sans-serif"],
+              mono:     ["ui-monospace", "SFMono-Regular", "SF Mono", "Menlo", "Consolas", "monospace"],
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+      :root {
+        /* Typography — one readable sans for everything, plain mono for VIN/IDs.
+           Noto Sans KR carries Korean text that Inter has no glyphs for. */
+        --body-font: "Inter", "Noto Sans KR", system-ui, -apple-system, "Segoe UI", sans-serif;
+        --display-font: "Inter", "Noto Sans KR", system-ui, -apple-system, "Segoe UI", sans-serif;
+        --mono-font: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+
+        /* Light theme — warm, neutral, high-contrast */
+        --primary: 180 83 9;          /* #b45309 amber-700, accessible on white */
+        --primary-soft: 254 243 199;  /* #fef3c7 amber-100 */
+        --background: 250 250 249;    /* #fafaf9 stone-50 */
+        --surface: 255 255 255;       /* #ffffff */
+        --surface-container: 245 245 244; /* #f5f5f4 stone-100 */
+        --surface-bright: 231 229 228;    /* #e7e5e4 stone-200 */
+        --surface-input: 250 250 249;     /* slightly off-white for inputs */
+        --on-surface: 28 25 23;       /* #1c1917 stone-900 */
+        --on-surface-rgb: 28 25 23;
+        --outline: 168 162 158;       /* #a8a29e stone-400 */
+        --outline-rgb: 28 25 23;      /* alpha-overlay border base */
+        --shadow: 0 0 0;
+      }
+      .dark {
+        --primary: 251 191 36;        /* #fbbf24 */
+        --primary-soft: 69 26 3;
+        --background: 18 20 20;       /* #121414 */
+        --surface: 26 28 28;          /* #1a1c1c */
+        --surface-container: 30 32 32;
+        --surface-bright: 55 57 58;
+        --surface-input: 0 0 0;
+        --on-surface: 231 233 233;    /* #e7e9e9 */
+        --on-surface-rgb: 231 233 233;
+        --outline: 255 255 255;
+        --outline-rgb: 255 255 255;
+        --shadow: 0 0 0;
+      }
+      body {
+        font-family: var(--body-font);
+        background-color: rgb(var(--background));
+        color: rgb(var(--on-surface));
+        font-feature-settings: 'cv11', 'ss01', 'ss03';
+        transition: background-color 0.2s ease, color 0.2s ease;
+      }
+      h1, h2, h3, h4, h5, h6, .headline { font-family: var(--display-font); letter-spacing: -0.02em; }
+      .font-mono, code, kbd, pre, samp { font-family: var(--mono-font); }
+      .scrollbar-hide::-webkit-scrollbar { display: none; }
+      .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+      /* ---------- Light-mode adaptation for hard-coded dark utilities ----------
+         Existing views were authored for the dark theme using literal black/white
+         alpha utilities. Under :root:not(.dark) we remap them so cards, table
+         rows, inputs and borders render with proper hierarchy + contrast. */
+
+      /* Surfaces (cards, inputs) — dark-mode used translucent black/white */
+      html:not(.dark) .bg-black\/20,
+      html:not(.dark) .bg-black\/30,
+      html:not(.dark) .bg-black\/40,
+      html:not(.dark) .bg-black\/50,
+      html:not(.dark) .bg-black\/60 {
+        background-color: rgb(var(--surface-input)) !important;
+      }
+      html:not(.dark) .bg-black { background-color: rgb(var(--surface-container)) !important; }
+
+      html:not(.dark) .bg-white\/\[0\.01\],
+      html:not(.dark) .bg-white\/\[0\.02\],
+      html:not(.dark) .bg-white\/\[0\.03\],
+      html:not(.dark) .bg-white\/5 {
+        background-color: rgb(var(--surface)) !important;
+      }
+      html:not(.dark) .bg-white\/10 { background-color: rgb(var(--surface-container)) !important; }
+
+      html:not(.dark) .hover\:bg-white\/5:hover,
+      html:not(.dark) .hover\:bg-white\/10:hover,
+      html:not(.dark) .hover\:bg-white\/\[0\.02\]:hover,
+      html:not(.dark) .hover\:bg-white\/\[0\.03\]:hover {
+        background-color: rgb(var(--surface-bright) / 0.5) !important;
+      }
+
+      /* Text */
+      html:not(.dark) .text-white { color: rgb(var(--on-surface)) !important; }
+      html:not(.dark) .text-white\/30,
+      html:not(.dark) .text-white\/40,
+      html:not(.dark) .text-white\/50 { color: rgb(var(--on-surface) / 0.55) !important; }
+      html:not(.dark) .text-white\/60,
+      html:not(.dark) .text-white\/70,
+      html:not(.dark) .text-white\/80 { color: rgb(var(--on-surface) / 0.75) !important; }
+
+      /* Borders — outline-color in dark was white@8%; in light needs darker base */
+      html:not(.dark) .border-white\/\[0\.07\],
+      html:not(.dark) .border-white\/\[0\.08\],
+      html:not(.dark) .border-white\/10 { border-color: rgb(var(--outline) / 0.4) !important; }
+
+      html:not(.dark) .divide-outline > :not([hidden]) ~ :not([hidden]),
+      html:not(.dark) .border-outline { border-color: rgb(var(--outline) / 0.35) !important; }
+
+      /* Placeholders authored as rgba(255,255,255,...) inline */
+      html:not(.dark) input::placeholder,
+      html:not(.dark) textarea::placeholder { color: rgb(var(--on-surface) / 0.4) !important; }
+
+      /* Custom-select chevron uses a baked-in gold SVG; tint via filter for light */
+      html:not(.dark) .custom-select {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23b45309'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E") !important;
+      }
+
+      /* Status badges originally tinted on dark canvas — soften under light */
+      html:not(.dark) .status-active { background: rgb(16 185 129 / 0.12) !important; color: #047857 !important; }
+      html:not(.dark) .status-banned { background: rgb(180 83 9 / 0.12) !important; color: #b45309 !important; }
+      html:not(.dark) .status-delete { background: rgb(220 38 38 / 0.12) !important; color: #b91c1c !important; }
+
+      /* Soft shadow under cards in light mode */
+      html:not(.dark) .shadow-2xl { box-shadow: 0 1px 2px rgb(0 0 0 / 0.04), 0 8px 24px -8px rgb(0 0 0 / 0.08) !important; }
+
+      /* ---------- "Naturalize" the cars / consultations / posts pages ----------
+         The original layout was a hard "data terminal" frame: heavy borders,
+         uppercase mono labels everywhere, sharp 12px corners, and a 2xl shadow.
+         Soften the whole thing into a calmer, more conventional dashboard. */
+      main .bg-surface.rounded-card {
+        border: none !important;
+        border-radius: 16px !important;
+        box-shadow: 0 1px 2px rgb(0 0 0 / 0.04), 0 12px 32px -16px rgb(0 0 0 / 0.12) !important;
+        background-color: rgb(var(--surface)) !important;
+      }
+      html.dark main .bg-surface.rounded-card {
+        box-shadow: 0 1px 0 rgb(255 255 255 / 0.03) inset, 0 8px 24px -12px rgb(0 0 0 / 0.6) !important;
+      }
+
+      /* Section header strip inside the card — calmer divider, no tinted bg */
+      main .bg-surface.rounded-card > .border-b.border-outline,
+      main .bg-surface.rounded-card > div.border-b {
+        background: transparent !important;
+        border-bottom: 1px solid rgb(var(--outline) / 0.18) !important;
+      }
+      main .bg-surface.rounded-card > .border-t.border-outline {
+        background: transparent !important;
+        border-top: 1px solid rgb(var(--outline) / 0.18) !important;
+      }
+
+      /* Table header row */
+      main table thead tr.bg-black\/20 {
+        background: rgb(var(--surface-container)) !important;
+      }
+      main table thead th {
+        font-family: var(--body-font) !important;
+        text-transform: none !important;
+        letter-spacing: 0 !important;
+        font-weight: 600 !important;
+        color: rgb(var(--on-surface) / 0.55) !important;
+        font-size: 12px !important;
+      }
+
+      /* Row dividers — softer */
+      main tbody.divide-y > tr + tr {
+        border-top: 1px solid rgb(var(--outline) / 0.12) !important;
+      }
+      main tbody tr:hover { background-color: rgb(var(--primary) / 0.04) !important; }
+
+      /* Tone down the page H1 — no uppercase, serif-ish weight */
+      main > div > .flex > div > h1.font-headline {
+        text-transform: none !important;
+        letter-spacing: -0.02em !important;
+        font-size: 1.75rem !important;
+        font-weight: 700 !important;
+      }
+      main > div > .flex > div > p.font-mono {
+        font-family: var(--body-font) !important;
+        text-transform: none !important;
+        letter-spacing: 0 !important;
+        font-size: 13px !important;
+      }
+
+      /* Filter pills — pill, no border in resting state */
+      .filter-btn {
+        border: 1px solid transparent !important;
+        background: rgb(var(--surface-container)) !important;
+        color: rgb(var(--on-surface) / 0.7) !important;
+        font-family: var(--body-font) !important;
+        text-transform: none !important;
+        letter-spacing: 0 !important;
+        font-weight: 600 !important;
+        font-size: 12px !important;
+      }
+      .filter-btn:hover {
+        background: rgb(var(--primary) / 0.08) !important;
+        color: rgb(var(--primary)) !important;
+      }
+      .filter-btn.active {
+        background: rgb(var(--primary) / 0.12) !important;
+        border-color: rgb(var(--primary) / 0.3) !important;
+        color: rgb(var(--primary)) !important;
+      }
+
+      /* Search input — pill, gentler */
+      main input#search-input {
+        background: rgb(var(--surface-container)) !important;
+        border: 1px solid rgb(var(--outline) / 0.18) !important;
+        font-family: var(--body-font) !important;
+        font-size: 13px !important;
+      }
+
+      /* The little "live" status dot + label — drop the uppercase tracking */
+      main .bg-surface.rounded-card h3.font-headline {
+        font-family: var(--display-font) !important;
+        text-transform: none !important;
+        letter-spacing: 0 !important;
+        font-size: 14px !important;
+        font-weight: 600 !important;
+        color: rgb(var(--on-surface)) !important;
+      }
+
+      /* Footer counter strip */
+      main .bg-surface.rounded-card > div:last-child > span.font-mono {
+        font-family: var(--body-font) !important;
+        text-transform: none !important;
+        letter-spacing: 0 !important;
+        font-size: 12px !important;
+        color: rgb(var(--on-surface) / 0.6) !important;
+      }
+
+      /* Page-level summary chips (Total Units / Active / Pending) */
+      main > div > .flex.justify-between .flex-col span.font-mono.uppercase {
+        font-family: var(--body-font) !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.06em !important;
+        font-size: 10px !important;
+      }
+
+      /* Theme toggle */
+      .theme-toggle {
+        width: 34px; height: 34px; border-radius: 999px;
+        display: inline-flex; align-items: center; justify-content: center;
+        border: 1px solid rgb(var(--outline) / 0.35);
+        background: rgb(var(--surface-container));
+        color: rgb(var(--primary));
+        cursor: pointer; transition: all 0.2s ease;
+      }
+      .theme-toggle:hover {
+        border-color: rgb(var(--primary) / 0.6);
+        background: rgb(var(--primary) / 0.08);
+      }
+      .theme-toggle .icon-sun  { display: none; }
+      .theme-toggle .icon-moon { display: block; }
+      html.dark .theme-toggle .icon-sun  { display: block; }
+      html.dark .theme-toggle .icon-moon { display: none; }
+      html:not(.dark) .theme-toggle { color: #b45309; }
+
+      /* Header bar adapts to theme */
+      html:not(.dark) header.fixed { border-bottom-color: rgb(var(--outline) / 0.25) !important; }
+    </style>
+    <link rel="stylesheet" type="text/css" href="/css/main.css" />
+  </head>
