@@ -1,0 +1,230 @@
+.help-page {
+  width: 100%;
+  height: auto;
+  display: flex;
+  background: var(--bg, #f8f8ff);
+  color: var(--text, #0b0c0e);
+}
+
+.help-page .help-container {
+  margin-top: 50px;
+  margin-bottom: 50px;
+  flex-direction: row;
+}
+
+.help-page .help-menu {
+  width: 100%;
+  height: 60px;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  border-bottom: 1px solid #f8f8ff;
+}
+
+.help-page .help-menu .table-list {
+  display: flex;
+  justify-content: space-between;
+}
+
+.help-page .css-1gsv261 {
+  width: 75%;
+}
+
+.help-page .css-heg063-MuiTabs-flexContainer {
+  justify-content: space-between;
+}
+
+.help-page .css-19kzrtu {
+  padding-top: 24px;
+}
+
+.help-page .help-main-content {
+  width: 100%;
+  height: 1000px;
+}
+
+.help-page .rules-box {
+  padding: 24px;
+  width: 100%;
+  height: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface, #f8f8ff);
+  border: 1px solid var(--line, #ededed);
+  box-shadow: 0px 20px 30px rgba(25, 25, 46, 0.04);
+  border-radius: 8px;
+}
+
+.rules-box .rules-frame {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.rules-box .rules-frame p {
+  border-bottom: 1px solid var(--line-soft, #dddddd);
+  color: var(--text, #000000);
+  font-family: var(--body-font);
+  font-weight: 400;
+  font-size: 1rem;
+  letter-spacing: 0.00938em;
+}
+
+.help-page .accordion-menu {
+  width: 100%;
+  height: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.help-page .admin-letter-box {
+  padding: 60px;
+  width: 100%;
+  height: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface, #f8f8ff);
+  border: 1px solid var(--line, #ededed);
+  box-shadow: 0px 20px 30px rgba(25, 25, 46, 0.04);
+  border-radius: 8px;
+}
+
+.help-page .admin-letter-box .admin-letter-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.help-page .admin-letter-container .admin-letter-frame {
+  margin-top: 30px;
+  display: flex;
+  flex-direction: column;
+}
+
+.help-page .admin-letter-frame span {
+  font-family: var(--body-font);
+  font-style: normal;
+  font-weight: 400;
+  font-size: 24px;
+  line-height: 28px;
+  color: var(--text, #140342);
+}
+
+.help-page .admin-letter-frame p {
+  margin-top: 20px;
+  font-family: var(--display-font);
+  font-style: normal;
+  font-weight: 400;
+  font-size: 15px;
+  line-height: 26px;
+  color: var(--text-mute, #4f547b);
+}
+
+.help-page .admin-letter-container .admin-letter-frame {
+  display: flex;
+  flex-direction: column;
+}
+
+.help-page .admin-letter-frame .admin-input-box {
+  margin-top: 30px;
+  width: 100%;
+  height: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.help-page .admin-letter-frame .admin-input-box label {
+  font-family: var(--body-font);
+  font-style: normal;
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 19px;
+  color: var(--text, #140342);
+}
+
+.help-page .admin-letter-frame .admin-input-box input {
+  margin-top: 10px;
+  padding: 20px;
+  width: 100%;
+  height: 60px;
+  display: flex;
+  background: var(--surface, #f8f8ff);
+  border: 1px solid var(--line, #dddddd);
+  border-radius: 8px;
+  font-family: var(--body-font);
+  font-style: normal;
+  font-weight: 400;
+  font-size: 15px;
+  line-height: 26px;
+  color: var(--text-mute, #4f547b);
+}
+
+.help-page .admin-letter-frame .admin-input-box textarea {
+  margin-top: 10px;
+  padding: 20px;
+  width: 100%;
+  height: 150px;
+  display: flex;
+  background: var(--surface, #f8f8ff);
+  border: 1px solid var(--line, #dddddd);
+  border-radius: 8px;
+  font-family: var(--body-font);
+  font-style: normal;
+  font-weight: 400;
+  font-size: 15px;
+  line-height: 26px;
+  color: var(--text-mute, #4f547b);
+}
+
+/* MUI Accordion / Tabs theming */
+.help-page .MuiAccordion-root {
+  background: var(--surface) !important;
+  color: var(--text) !important;
+  border: 1px solid var(--line) !important;
+  box-shadow: none !important;
+}
+.help-page .MuiAccordion-root::before { display: none !important; }
+.help-page .MuiAccordionSummary-root,
+.help-page .MuiAccordionDetails-root {
+  background: var(--surface) !important;
+  color: var(--text) !important;
+}
+.help-page .MuiAccordionSummary-root .MuiTypography-root,
+.help-page .MuiAccordionDetails-root .MuiTypography-root {
+  color: var(--text) !important;
+}
+.help-page .MuiAccordionSummary-expandIconWrapper {
+  color: var(--text-mute) !important;
+}
+.help-page .MuiTab-root { color: var(--text-mute) !important; }
+.help-page .MuiTab-root.Mui-selected { color: var(--accent) !important; }
+.help-page .MuiTabs-indicator { background-color: var(--accent) !important; }
+
+/* ── Responsive ─────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .help-page .css-1gsv261 { width: 100%; }
+}
+
+@media (max-width: 768px) {
+  .help-page .help-container { margin-top: 28px; margin-bottom: 28px; }
+  .help-page .help-menu { height: auto; }
+  .help-page .help-menu .table-list,
+  .help-page .css-heg063-MuiTabs-flexContainer { justify-content: flex-start; }
+  /* let the tab strip scroll horizontally instead of squishing */
+  .help-page .MuiTabs-flexContainer { gap: 4px; }
+  .help-page .help-main-content { height: auto; }
+  .help-page .admin-letter-box { padding: 28px 20px; }
+  .help-page .rules-box { padding: 18px; }
+}
+
+@media (max-width: 480px) {
+  .help-page .admin-letter-box { padding: 22px 16px; }
+  .help-page .admin-letter-frame span { font-size: 20px; line-height: 26px; }
+  .help-page .admin-letter-frame .admin-input-box input { height: 52px; padding: 14px; }
+}

@@ -1,0 +1,235 @@
+/* ────────────────────────────────────────────────────────────
+   Typography tokens — global fallback. Per-page stylesheets
+   (landing/carList/carDetail/news/userPage) re-declare the same
+   values on their own scope; pages that don't inherit from here.
+   One readable sans for body and headings, plain mono only for
+   VIN / IDs / figures. Noto Sans KR carries the Korean glyphs
+   Inter does not ship.
+   ──────────────────────────────────────────────────────────── */
+:root {
+  /* +1 in LTR, -1 in RTL — multiply physical translateX offsets by this so
+     off-canvas drawers slide in from the correct edge in both directions. */
+  --dir-x: 1;
+  --body-font: "Inter", "Noto Sans Arabic", "Noto Sans KR", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --display-font: "Inter", "Noto Sans Arabic", "Noto Sans KR", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono-font: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+}
+
+body {
+  margin: 0;
+  font-family: var(--body-font);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: var(--bg);
+  color: var(--text);
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+html {
+  scrollbar-width: none;
+}
+
+body {
+  -ms-overflow-style: none;
+}
+
+body::-webkit-scrollbar {
+  display: none;
+}
+
+code {
+  font-family: var(--mono-font);
+}
+
+/* Mobile safety nets: prevent media and the page itself from overflowing
+   horizontally on small screens. */
+img,
+video,
+svg {
+  max-width: 100%;
+}
+
+@media (max-width: 768px) {
+  html,
+  body {
+    overflow-x: hidden;
+  }
+}
+
+/* ────────────────────────────────────────────────────────────
+   Responsive content width — let the capped page layout grow on
+   large monitors instead of staying pinned at 1200px with huge
+   empty side margins. Each page scopes its own --page-max, so we
+   override all of them here at wider breakpoints.
+   ──────────────────────────────────────────────────────────── */
+@media (min-width: 1440px) {
+  .landing,
+  .carlist,
+  .cardetail,
+  .mypage,
+  .news,
+  .news-detail {
+    --page-max: 1360px;
+  }
+}
+
+@media (min-width: 1700px) {
+  .landing,
+  .carlist,
+  .cardetail,
+  .mypage,
+  .news,
+  .news-detail {
+    --page-max: 1560px;
+  }
+}
+
+@media (min-width: 2000px) {
+  .landing,
+  .carlist,
+  .cardetail,
+  .mypage,
+  .news,
+  .news-detail {
+    --page-max: 1760px;
+  }
+}
+
+/* ────────────────────────────────────────────────────────────
+   Theme tokens — light (default) and dark
+   ──────────────────────────────────────────────────────────── */
+:root,
+:root[data-theme="light"] {
+  --bg: #f4f2ec;
+  --surface: #ffffff;
+  --surface2: #ecebe5;
+  --text: #0b0c0e;
+  --text-mute: #5a5d63;
+  --text-dim: #8a8d93;
+  --line: #e3e0d8;
+  --line-soft: #ecebe5;
+  --accent: #d7b586;
+  --warn: #ffb547;
+  --ok: #3ee07c;
+  --danger: #e85a5a;
+  --on-accent: #0b0c0e;
+  --footer-bg: #ece9e1;
+  --footer-text: #5a5d63;
+  --footer-heading: #0b0c0e;
+  --footer-link: #9a7b42;
+  --footer-rule: rgba(0, 0, 0, 0.1);
+  --nav-bg: transparent;
+  --nav-text: #0b0c0e;
+}
+
+:root[data-theme="dark"] {
+  --bg: #0e0f12;
+  --surface: #16181c;
+  --surface2: #1d2026;
+  --text: #f1ece1;
+  --text-mute: #a8acb3;
+  --text-dim: #70747c;
+  --line: #2a2d33;
+  --line-soft: #22252b;
+  --accent: #d7b586;
+  --warn: #ffb547;
+  --ok: #3ee07c;
+  --danger: #e85a5a;
+  --on-accent: #0b0c0e;
+  --footer-bg: #07080a;
+  --footer-text: #a8acb3;
+  --footer-heading: #f1ece1;
+  --footer-link: #e3c08d;
+  --footer-rule: rgba(255, 255, 255, 0.08);
+  --nav-bg: transparent;
+  --nav-text: #f1ece1;
+}
+
+/* Override per-page scoped tokens in dark mode (existing CSS scopes
+   --bg, --text, etc. on .landing/.mypage/.carlist/.cardetail/.news).
+   Re-declare them here so the page-scoped vars pick up dark values. */
+:root[data-theme="dark"] .landing,
+:root[data-theme="dark"] .mypage,
+:root[data-theme="dark"] .carlist,
+:root[data-theme="dark"] .cardetail,
+:root[data-theme="dark"] .news,
+:root[data-theme="dark"] .news-detail,
+:root[data-theme="dark"] .cv {
+  --bg: #0e0f12;
+  --surface: #16181c;
+  --surface2: #1d2026;
+  --text: #f1ece1;
+  --text-mute: #a8acb3;
+  --text-dim: #70747c;
+  --line: #2a2d33;
+  --line-soft: #22252b;
+}
+
+/* Verify page: green badge keeps good contrast in dark mode */
+:root[data-theme="dark"] .cv {
+  --ok: #3ee07c;
+}
+:root[data-theme="dark"] .cv__badge {
+  background: rgba(62, 224, 124, 0.14);
+}
+
+/* Hero overlay gradient flips for dark */
+:root[data-theme="dark"] .landing__hero-overlay {
+  background: linear-gradient(180deg, rgba(14, 15, 18, 0.5) 0%, rgba(14, 15, 18, 0.85) 60%, rgba(14, 15, 18, 1) 100%);
+}
+
+/* Big CTA — uses surface so it adapts to theme automatically */
+:root[data-theme="dark"] .landing-cta__btn { color: #0b0c0e; }
+
+/* Buttons that use bg as foreground need contrast */
+:root[data-theme="dark"] .landing-btn--primary,
+:root[data-theme="dark"] .mp-btn--primary,
+:root[data-theme="dark"] .cd-btn--primary {
+  background: var(--accent);
+  color: #0b0c0e;
+}
+:root[data-theme="dark"] .login-button {
+  background-color: var(--accent) !important;
+  color: #0b0c0e !important;
+}
+:root[data-theme="dark"] .cl-density__btn--active {
+  background: var(--accent);
+  color: #0b0c0e;
+  border-color: var(--accent);
+}
+
+/* Car tag solid uses light bg with dark text — keep readable in dark theme */
+:root[data-theme="dark"] .car-tag,
+:root[data-theme="dark"] .cl-tag--solid,
+:root[data-theme="dark"] .cd-tag--solid,
+:root[data-theme="dark"] .mp-tag--solid {
+  color: #0b0c0e;
+  background: #f1ece1;
+}
+:root[data-theme="dark"] .car-tag--outline {
+  background: rgba(11, 12, 14, 0.7);
+  color: #f1ece1;
+  box-shadow: inset 0 0 0 1px rgba(241, 236, 225, 0.9), 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+:root[data-theme="dark"] .car-tag--warn-o,
+:root[data-theme="dark"] .car-tag--ok-o {
+  background: rgba(11, 12, 14, 0.7);
+}
+
+/* Save badges over images */
+:root[data-theme="dark"] .car-card__save {
+  background: rgba(241, 236, 225, 0.15);
+}
+
+/* ── Right-to-left (Arabic) ──────────────────────────────────
+   Layout uses logical properties, so only the physical bits
+   need flipping: the slide direction of off-canvas drawers.  */
+[dir="rtl"] {
+  --dir-x: -1;
+}
+
+/* Arabic letters join into words. The tracking that gives the Latin
+   uppercase labels their look severs those joins, so drop it in RTL. */
+[dir="rtl"] * {
+  letter-spacing: normal !important;
+}

@@ -1,0 +1,475 @@
+/* Car list / browse page */
+
+.carlist {
+  --bg: #f4f2ec;
+  --surface: #ffffff;
+  --surface2: #ecebe5;
+  --text: #0b0c0e;
+  --text-mute: #5a5d63;
+  --text-dim: #8a8d93;
+  --line: #e3e0d8;
+  --line-soft: #ecebe5;
+  --accent: #d7b586;
+  --warn: #ffb547;
+  --display-font: "Inter", "Noto Sans Arabic", "Noto Sans KR", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --body-font: "Inter", "Noto Sans Arabic", "Noto Sans KR", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono-font: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100%;
+  --page-max: 1200px;
+}
+
+/* Cap content width on wide screens; keep the page background full-bleed. */
+.carlist > * {
+  max-width: var(--page-max);
+  margin-inline: auto;
+}
+
+/* Page head */
+.carlist__head {
+  padding: 32px 48px 20px;
+  border-bottom: 1px solid var(--line);
+}
+.carlist__crumb {
+  font-family: var(--body-font);
+  font-size: 11px;
+  color: var(--text-dim);
+  letter-spacing: 0.18em;
+  margin-bottom: 8px;
+}
+.carlist__head-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+}
+.carlist__title {
+  font-family: var(--display-font);
+  font-size: 44px;
+  font-weight: 700;
+  margin: 0;
+  letter-spacing: -0.03em;
+}
+.carlist__toolbar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.carlist__toolbar-label {
+  font-family: var(--body-font);
+  font-size: 10px;
+  color: var(--text-dim);
+  letter-spacing: 0.15em;
+}
+.carlist__sort {
+  height: 32px;
+  padding: 0 28px 0 10px;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--line);
+  font-family: var(--body-font);
+  font-size: 11px;
+  border-radius: 2px;
+}
+.carlist__divider {
+  width: 1px;
+  height: 24px;
+  background: var(--line);
+  margin: 0 6px;
+}
+.carlist__view-btn {
+  width: 32px;
+  height: 32px;
+  background: transparent;
+  color: var(--text-mute);
+  border: 1px solid var(--line);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 2px;
+  font-family: var(--body-font);
+  font-size: 11px;
+}
+.carlist__view-btn--active {
+  background: var(--surface2);
+  color: var(--text);
+}
+
+/* Layout */
+.carlist__layout {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+}
+
+/* Filters */
+.carlist__filters {
+  padding: 24px 24px 24px 48px;
+  border-inline-end: 1px solid var(--line);
+  align-self: flex-start;
+  position: sticky;
+  top: 64px;
+}
+.carlist__filters-title {
+  font-family: var(--body-font);
+  font-size: 10px;
+  color: var(--text-dim);
+  letter-spacing: 0.18em;
+  margin-bottom: 16px;
+}
+/* Mobile-only filter controls — hidden on desktop */
+.carlist__filters-btn,
+.carlist__filters-close,
+.carlist__filters-apply,
+.carlist__filters-backdrop { display: none; }
+.carlist__filters-head { margin-bottom: 16px; }
+.carlist__filters-head .carlist__filters-title { margin-bottom: 0; }
+.cl-fg {
+  margin-bottom: 22px;
+  padding-bottom: 22px;
+  border-bottom: 1px solid var(--line-soft);
+}
+.cl-fg__title {
+  font-family: var(--body-font);
+  font-size: 10px;
+  color: var(--text);
+  letter-spacing: 0.18em;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+}
+.cl-fr {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 6px 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-family: var(--body-font);
+  font-size: 13px;
+  color: var(--text-mute);
+  text-align: start;
+}
+.cl-fr--active { color: var(--text); }
+.cl-fr__box {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  margin-inline-end: 10px;
+  border: 1px solid var(--line);
+  background: transparent;
+  position: relative;
+  border-radius: 1px;
+}
+.cl-fr--active .cl-fr__box {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+.cl-fr__check {
+  position: absolute;
+  inset: 0;
+  color: #0b0c0e;
+  font-size: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cl-range { padding: 8px 0; }
+.cl-range__input {
+  width: 100%;
+  accent-color: var(--accent);
+}
+.cl-range__labels {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--mono-font);
+  font-size: 10px;
+  color: var(--text-mute);
+  margin-top: 4px;
+}
+.cl-range__current { color: var(--text); }
+
+.cl-density { display: flex; gap: 4px; margin-top: 4px; }
+.cl-density__btn {
+  flex: 1;
+  height: 30px;
+  background: transparent;
+  color: var(--text-mute);
+  border: 1px solid var(--line);
+  font-family: var(--body-font);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  border-radius: 2px;
+}
+.cl-density__btn--active {
+  background: var(--text);
+  color: var(--bg);
+  border-color: var(--text);
+}
+
+/* Results */
+.carlist__results { padding: 24px 48px 48px; }
+
+.cl-chips {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.cl-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  color: var(--text);
+  font-family: var(--body-font);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  border-radius: 2px;
+}
+.cl-chip__close { cursor: pointer; color: var(--text-mute); }
+.cl-chips__count {
+  font-family: var(--body-font);
+  font-size: 11px;
+  color: var(--text-dim);
+  letter-spacing: 0.1em;
+}
+
+.cl-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+}
+
+/* List view table */
+.cl-list {
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+.cl-list__head,
+.cl-list__row {
+  display: grid;
+  grid-template-columns: 120px 1fr 110px 110px 130px 100px 80px;
+  gap: 16px;
+  align-items: center;
+}
+.cl-list__head {
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--line);
+  font-family: var(--body-font);
+  font-size: 10px;
+  color: var(--text-dim);
+  letter-spacing: 0.15em;
+}
+.cl-list__row {
+  padding: 14px 18px;
+  border-top: 1px solid var(--line-soft);
+  cursor: pointer;
+}
+.cl-list__model {
+  font-family: var(--display-font);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+.cl-list__id {
+  font-family: var(--mono-font);
+  font-size: 10px;
+  color: var(--text-dim);
+  letter-spacing: 0.08em;
+  margin-top: 2px;
+}
+.cl-list__num { font-family: var(--mono-font); font-size: 12px; color: var(--text); }
+.cl-list__num--mute { color: var(--text-mute); }
+.cl-list__price {
+  font-family: var(--display-font);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+}
+.cl-list__price-sub {
+  display: block;
+  font-family: var(--mono-font);
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--text-mute);
+  margin-top: 2px;
+}
+
+/* Tag (shared style with userPage's mp-tag) */
+.cl-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  font-family: var(--body-font);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  border-radius: 2px;
+}
+.cl-tag--solid { color: #0b0c0e; }
+.cl-tag--outline { background: transparent; border: 1px solid currentColor; }
+
+@media (max-width: 1024px) {
+  .carlist__layout { grid-template-columns: 1fr; }
+
+  /* Filters become a slide-in drawer triggered by the Filters button */
+  .carlist__filters-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 38px;
+    padding: 0 14px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--text);
+    font-family: var(--body-font);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+  }
+  .carlist__filters {
+    position: fixed;
+    top: 0;
+    inset-inline-start: 0;
+    bottom: 0;
+    width: min(86vw, 340px);
+    height: 100vh;
+    height: 100dvh;
+    padding: 20px 20px 24px;
+    border-inline-end: 1px solid var(--line);
+    background: var(--bg);
+    overflow-y: auto;
+    z-index: 220;
+    transform: translateX(calc(-100% * var(--dir-x)));
+    transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .carlist__filters--open { transform: translateX(0); }
+  .carlist__filters-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 210;
+  }
+  .carlist__filters-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .carlist__filters-close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: transparent;
+    color: var(--text);
+    font-size: 14px;
+    cursor: pointer;
+  }
+  .carlist__filters-apply {
+    display: block;
+    width: 100%;
+    margin-top: 16px;
+    height: 48px;
+    border: none;
+    border-radius: 8px;
+    background: var(--accent);
+    color: #0b0c0e;
+    font-family: var(--body-font);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    /* Stay pinned to the bottom while the filter list scrolls behind it */
+    position: sticky;
+    bottom: 0;
+  }
+
+  .cl-grid { grid-template-columns: repeat(2, 1fr); }
+  /* Keep image, vehicle, year, price — hide km/color/status */
+  .cl-list__head, .cl-list__row {
+    grid-template-columns: 80px 1fr 70px 110px;
+  }
+  .cl-list__head > *:nth-child(4),
+  .cl-list__head > *:nth-child(5),
+  .cl-list__head > *:nth-child(7),
+  .cl-list__row > *:nth-child(4),
+  .cl-list__row > *:nth-child(5),
+  .cl-list__row > *:nth-child(7) { display: none; }
+}
+.cl-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 24px;
+  padding: 16px 0 8px;
+}
+.cl-pagination__btn {
+  height: 40px;
+  padding: 0 18px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font-family: var(--body-font);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+}
+.cl-pagination__btn:disabled { opacity: 0.4; cursor: default; }
+.cl-pagination__info {
+  font-family: var(--body-font);
+  font-size: 12px;
+  color: var(--text-mute);
+  letter-spacing: 0.08em;
+}
+
+@media (max-width: 640px) {
+  .carlist__head, .carlist__results { padding-inline-start: 20px; padding-inline-end: 20px; }
+  .cl-grid { grid-template-columns: 1fr; }
+  /* Title on its own line; move Filters/Sort to a row below so nothing overflows */
+  .carlist__head-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  .carlist__title {
+    font-size: 28px;
+    /* Wrap rather than overflow: translated titles run longer than the
+       English one and nowrap pushed them past the viewport. */
+    white-space: normal;
+  }
+  .carlist__toolbar {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .carlist__sort { flex: 1; min-width: 0; }
+  /* 32px is fine for a cursor, tight for a thumb. */
+  .carlist__sort,
+  .carlist__view-btn,
+  .carlist__filters-btn { height: 40px; }
+  .carlist__view-btn { width: 40px; }
+}
+@media (max-width: 480px) {
+  /* List view → image, vehicle, price only */
+  .cl-list__head { display: none; }
+  .cl-list__row { grid-template-columns: 64px 1fr auto; gap: 12px; }
+  .cl-list__row > *:nth-child(3) { display: none; }
+}
