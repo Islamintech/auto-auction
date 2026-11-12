@@ -1,223 +1,125 @@
 <%- include('includes/header') %>
 <%- include('includes/nav', { page: 'members' }) %>
 
-<style>
-  input::placeholder { color: rgb(var(--on-surface) / 0.35); }
-  .status-active { background: rgba(69,223,164,0.1); color: #45dfa4; }
-  .status-banned { background: rgba(251,191,36,0.1); color: #fbbf24; }
-  .status-delete { background: rgba(255,180,171,0.1); color: #ffb4ab; }
-  .scrollbar-hide::-webkit-scrollbar { display: none; }
-  .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+<body>
+<main>
+  <div class="page">
 
-  /* Readable native dropdown options */
-  select option {
-    background-color: rgb(var(--surface));
-    color: rgb(var(--on-surface));
-  }
-
-  /* Responsive card-style table on mobile */
-  @media (max-width: 768px) {
-    .responsive-table { border-collapse: separate; }
-    .responsive-table thead { display: none; }
-    .responsive-table,
-    .responsive-table tbody,
-    .responsive-table tr,
-    .responsive-table td { display: block; width: 100%; }
-
-    .responsive-table tbody { padding: 12px; }
-
-    .responsive-table tbody tr {
-      border: 1px solid rgb(var(--outline)) !important;
-      border-radius: 10px;
-      margin-bottom: 12px;
-      background: rgba(255,255,255,0.02);
-      overflow: hidden;
-    }
-
-    .responsive-table td {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 16px;
-      padding: 10px 16px !important;
-      text-align: right;
-      border-bottom: 1px solid rgb(var(--outline) / 0.4);
-    }
-    .responsive-table tr td:last-child { border-bottom: none; }
-
-    .responsive-table td::before {
-      content: attr(data-label);
-      font-family: var(--mono-font);
-      font-size: 10px;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: rgb(var(--on-surface) / 0.4);
-      text-align: left;
-      flex-shrink: 0;
-    }
-    .responsive-table td[data-label="#"] { display: none; }
-    .responsive-table td[colspan]::before { display: none; }
-    .responsive-table td[colspan] { text-align: center; justify-content: center; }
-  }
-</style>
-
-<body class="bg-background min-h-screen">
-<main class="pt-[60px] min-h-screen">
-  <div class="max-w-[1300px] mx-auto px-6 lg:px-12 py-10">
-
-    <!-- Page Header -->
-    <div class="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-8">
+    <div class="page-head">
       <div>
-        <span class="text-[10px] uppercase tracking-[0.2em] text-white/30 font-bold mb-2 block font-mono">Administrative Console</span>
-        <h1 class="text-3xl sm:text-5xl font-bold text-white tracking-tight">Members</h1>
+        <h1 class="page-title">Members</h1>
+        <p class="page-sub">Registered accounts and access</p>
       </div>
-      <div class="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
-        <input
-          id="search-input"
-          oninput="filterMembers()"
-          class="bg-white/[0.02] border border-white/[0.07] focus:border-primary/50 w-full md:w-80 pl-4 pr-4 py-3 rounded-lg text-sm text-white transition-all outline-none"
-          placeholder="Search by nickname or phone..."
-          type="text"
-        />
-      </div>
+      <input id="search-input" oninput="filterMembers()" type="text" class="search"
+             placeholder="Search name or phone" />
     </div>
 
-    <!-- Stats Row -->
-    <div class="grid grid-cols-3 gap-2 sm:gap-6 mb-10">
-      <div class="bg-white/[0.02] border border-white/[0.07] p-3 sm:p-8 rounded-lg relative overflow-hidden hover:border-primary/20 transition-all">
-        <div class="absolute top-0 left-0 w-1 h-full bg-success"></div>
-        <div class="flex justify-between items-start mb-3 sm:mb-6">
-          <span class="text-success text-2xl sm:text-4xl">✓</span>
-          <span class="bg-success/10 text-success px-2.5 py-1 rounded text-[10px] font-bold tracking-widest uppercase hidden sm:inline-block">Active</span>
-        </div>
-        <div class="text-2xl sm:text-4xl font-headline font-bold text-white" id="count-active">0</div>
-        <div class="text-[10px] uppercase tracking-[0.1em] text-white/40 mt-2 font-mono">Total Active Members</div>
-      </div>
-      <div class="bg-white/[0.02] border border-white/[0.07] p-3 sm:p-8 rounded-lg relative overflow-hidden hover:border-primary/20 transition-all">
-        <div class="absolute top-0 left-0 w-1 h-full bg-primary"></div>
-        <div class="flex justify-between items-start mb-3 sm:mb-6">
-          <span class="text-primary text-2xl sm:text-4xl">⊘</span>
-          <span class="bg-primary/10 text-primary px-2.5 py-1 rounded text-[10px] font-bold tracking-widest uppercase hidden sm:inline-block">Restricted</span>
-        </div>
-        <div class="text-2xl sm:text-4xl font-headline font-bold text-white" id="count-banned">0</div>
-        <div class="text-[10px] uppercase tracking-[0.1em] text-white/40 mt-2 font-mono">Banned Accounts</div>
-      </div>
-      <div class="bg-white/[0.02] border border-white/[0.07] p-3 sm:p-8 rounded-lg relative overflow-hidden hover:border-primary/20 transition-all">
-        <div class="absolute top-0 left-0 w-1 h-full bg-danger"></div>
-        <div class="flex justify-between items-start mb-3 sm:mb-6">
-          <span class="text-danger text-2xl sm:text-4xl">✕</span>
-          <span class="bg-danger/10 text-danger px-2.5 py-1 rounded text-[10px] font-bold tracking-widest uppercase hidden sm:inline-block">Archived</span>
-        </div>
-        <div class="text-2xl sm:text-4xl font-headline font-bold text-white" id="count-deleted">0</div>
-        <div class="text-[10px] uppercase tracking-[0.1em] text-white/40 mt-2 font-mono">Deleted Profiles</div>
-      </div>
-    </div>
+    <div class="stack">
 
-    <!-- Members Table -->
-    <div class="bg-white/[0.02] border border-white/[0.07] rounded-lg overflow-hidden">
-      <div class="overflow-x-auto scrollbar-hide">
-        <table class="w-full text-left border-collapse responsive-table">
-          <thead>
-            <tr class="bg-white/[0.03] border-b border-white/[0.07]">
-              <th class="px-8 py-5 text-[10px] font-bold uppercase tracking-widest text-white/40 font-mono">#</th>
-              <th class="px-8 py-5 text-[10px] font-bold uppercase tracking-widest text-white/40 font-mono">Member</th>
-              <th class="px-8 py-5 text-[10px] font-bold uppercase tracking-widest text-white/40 font-mono">Contact</th>
-              <th class="px-8 py-5 text-[10px] font-bold uppercase tracking-widest text-white/40 font-mono">Points</th>
-              <th class="px-8 py-5 text-[10px] font-bold uppercase tracking-widest text-white/40 font-mono">Joined</th>
-              <th class="px-8 py-5 text-[10px] font-bold uppercase tracking-widest text-white/40 font-mono">Status</th>
-              <th class="px-8 py-5 text-[10px] font-bold uppercase tracking-widest text-white/40 font-mono text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-white/[0.05]" id="members-tbody">
-            <% members.map(function(m, index) { %>
-            <tr class="hover:bg-white/[0.02] transition-colors group member-row"
-              data-nick="<%= m.memberNick?.toLowerCase() %>"
-              data-phone="<%= m.memberPhone %>"
-              data-status="<%= m.memberStatus %>"
-            >
-              <td data-label="#" class="px-8 py-6 text-sm font-mono text-white/30">
-                <%= String(index+1).padStart(3,'0') %>
-              </td>
-              <td data-label="Member" class="px-8 py-6">
-                <div class="flex items-center gap-4">
-                  <div class="h-11 w-11 rounded-full overflow-hidden flex-shrink-0 flex items-center justify-center font-bold text-lg shadow-lg
-                    <%= m.memberPoints > 1000 ? 'bg-primary text-background' : 'bg-white/10 text-white/60' %>">
-                    <% if(m.memberImage) { %>
-                      <img src="<%= imgUrl(m.memberImage) %>" class="w-full h-full object-cover" />
-                    <% } else { %>
-                      <%= m.memberNick?.charAt(0).toUpperCase() %>
-                    <% } %>
-                  </div>
-                  <div>
-                    <div class="font-bold text-white text-base"><%= m.memberNick %></div>
-                    <div class="text-[10px] text-white/30 uppercase tracking-widest font-mono">
-                      <%= m.memberCountry || 'Unknown' %>
+      <div class="stat-grid">
+        <div class="stat">
+          <div class="stat-label">Active</div>
+          <div class="stat-value num" id="count-active" style="color:rgb(var(--green))">0</div>
+          <div class="stat-sub">Accounts in good standing</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Banned</div>
+          <div class="stat-value num" id="count-banned" style="color:rgb(var(--amber))">0</div>
+          <div class="stat-sub">Access restricted</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Deleted</div>
+          <div class="stat-value num" id="count-deleted" style="color:rgb(var(--red))">0</div>
+          <div class="stat-sub">Archived profiles</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h3 class="card-title">All members</h3>
+        </div>
+
+        <div class="tbl-wrap scrollbar-hide">
+          <table class="tbl">
+            <thead>
+              <tr>
+                <th class="t-idx">#</th>
+                <th>Member</th>
+                <th>Contact</th>
+                <th>Points</th>
+                <th>Joined</th>
+                <th>Status</th>
+                <th class="t-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="members-tbody">
+              <% members.map(function(m, index) { %>
+              <tr class="member-row"
+                data-nick="<%= m.memberNick?.toLowerCase() %>"
+                data-phone="<%= m.memberPhone %>"
+                data-status="<%= m.memberStatus %>">
+                <td data-label="#" class="t-idx num"><%= index + 1 %></td>
+                <td data-label="Member">
+                  <div class="flex items-center gap-3">
+                    <div class="avatar w-10 h-10">
+                      <% if(m.memberImage) { %>
+                        <img src="<%= imgUrl(m.memberImage) %>" alt="" />
+                      <% } else { %>
+                        <%= m.memberNick?.charAt(0).toUpperCase() %>
+                      <% } %>
+                    </div>
+                    <div class="min-w-0">
+                      <div class="t-primary truncate"><%= m.memberNick %></div>
+                      <div class="t-secondary"><%= m.memberCountry || 'Unknown' %></div>
                     </div>
                   </div>
-                </div>
-              </td>
-              <td data-label="Contact" class="px-8 py-6">
-                <div class="text-sm text-white/60 font-mono tracking-tighter"><%= m.memberPhone %></div>
-                <div class="text-[10px] text-white/30 mt-1"><%= m.memberEmail || '—' %></div>
-              </td>
-              <td data-label="Points" class="px-8 py-6">
-                <div class="flex items-center gap-1.5 <%= m.memberPoints > 0 ? 'text-primary' : 'text-white/20' %>">
-                  <span class="text-lg">⭐</span>
-                  <span class="font-headline font-bold text-lg">
-                    <%= m.memberPoints?.toLocaleString() || 0 %>
-                    <span class="text-[10px] text-white/20 ml-1 font-normal uppercase font-mono">pts</span>
-                  </span>
-                </div>
-              </td>
-              <td data-label="Joined" class="px-8 py-6 text-sm text-white/40">
-                <%= new Date(m.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) %>
-              </td>
-              <td data-label="Status" class="px-8 py-6">
-                <select
-                  id="<%= m._id %>"
-                  onchange="updateMemberStatus(this)"
-                  class="border-0 text-[10px] font-bold uppercase tracking-widest py-1.5 px-4 pr-8 rounded-md focus:ring-0 cursor-pointer appearance-none outline-none
-                    <%= m.memberStatus === 'ACTIVE' ? 'status-active' : m.memberStatus === 'BANNED' ? 'status-banned' : 'status-delete' %>"
-                >
-                  <option value="ACTIVE" <%= m.memberStatus === 'ACTIVE' ? 'selected' : '' %>>Active</option>
-                  <option value="BANNED" <%= m.memberStatus === 'BANNED' ? 'selected' : '' %>>Banned</option>
-                  <option value="DELETE" <%= m.memberStatus === 'DELETE' ? 'selected' : '' %>>Delete</option>
-                </select>
-              </td>
-              <td data-label="Actions" class="px-8 py-6 text-right">
-                <button
-                  onclick="viewMember('<%= m._id %>')"
-                  class="w-8 h-8 rounded bg-white/[0.05] text-white/40 hover:text-white hover:bg-white/[0.1] transition-all flex items-center justify-center ml-auto"
-                  title="View">
-                  👁
-                </button>
-              </td>
-            </tr>
-            <% }) %>
-            <% if(members.length === 0) { %>
-            <tr>
-              <td colspan="7" class="px-8 py-16 text-center text-white/20 font-mono text-xs uppercase tracking-widest">
-                No members found.
-              </td>
-            </tr>
-            <% } %>
-          </tbody>
-        </table>
+                </td>
+                <td data-label="Contact">
+                  <div class="num" style="font-size:13px"><%= m.memberPhone %></div>
+                  <div class="t-secondary"><%= m.memberEmail || '—' %></div>
+                </td>
+                <td data-label="Points">
+                  <span class="num" style="font-weight:600"><%= m.memberPoints?.toLocaleString() || 0 %></span>
+                  <span class="t-secondary" style="display:inline; margin-left:3px">pts</span>
+                </td>
+                <td data-label="Joined" style="color:rgb(var(--text-muted)); font-size:13px">
+                  <%= new Date(m.createdAt).toLocaleDateString('en-GB', { year: 'numeric', month: 'short', day: 'numeric' }) %>
+                </td>
+                <td data-label="Status">
+                  <select id="<%= m._id %>" onchange="updateMemberStatus(this)"
+                    class="status-select <%= m.memberStatus === 'ACTIVE' ? 's-green' : m.memberStatus === 'BANNED' ? 's-amber' : 's-red' %>">
+                    <option value="ACTIVE" <%= m.memberStatus === 'ACTIVE' ? 'selected' : '' %>>Active</option>
+                    <option value="BANNED" <%= m.memberStatus === 'BANNED' ? 'selected' : '' %>>Banned</option>
+                    <option value="DELETE" <%= m.memberStatus === 'DELETE' ? 'selected' : '' %>>Deleted</option>
+                  </select>
+                </td>
+                <td data-label="Actions" class="t-right">
+                  <div class="row-actions">
+                    <button onclick="viewMember('<%= m._id %>')" class="icon-btn" title="View details" aria-label="View details">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              <% }) %>
+              <% if(members.length === 0) { %>
+              <tr><td colspan="7" class="t-empty">No members yet.</td></tr>
+              <% } %>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="card-foot"><span><%= members.length %> total</span></div>
       </div>
 
-      <div class="bg-white/[0.03] px-8 py-6 flex items-center justify-between border-t border-white/[0.07]">
-        <span class="text-[10px] text-white/30 uppercase tracking-[0.2em] font-mono">
-          <%= members.length %> total members
-        </span>
-      </div>
     </div>
-
   </div>
 </main>
 
-
 <script>
-document.addEventListener('DOMContentLoaded', () => {
+// The three tiles are derived from the rows, so they can be recounted in place
+// after a status change instead of needing a page reload.
+function recount() {
     let active = 0, banned = 0, deleted = 0;
     document.querySelectorAll('.member-row').forEach(row => {
         const status = row.dataset.status;
@@ -228,7 +130,8 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('count-active').textContent  = active;
     document.getElementById('count-banned').textContent  = banned;
     document.getElementById('count-deleted').textContent = deleted;
-});
+}
+document.addEventListener('DOMContentLoaded', recount);
 
 function filterMembers() {
     const query = document.getElementById('search-input').value.toLowerCase();
@@ -243,10 +146,12 @@ function updateMemberStatus(select) {
     const memberId     = select.id;
     const memberStatus = select.value;
 
-    select.className = select.className.replace(/status-\w+/g, '');
-    if (memberStatus === 'ACTIVE') select.classList.add('status-active');
-    else if (memberStatus === 'BANNED') select.classList.add('status-banned');
-    else select.classList.add('status-delete');
+    select.classList.remove('s-green', 's-amber', 's-red');
+    select.classList.add(
+        memberStatus === 'ACTIVE' ? 's-green' : memberStatus === 'BANNED' ? 's-amber' : 's-red'
+    );
+    select.closest('tr').dataset.status = memberStatus;
+    recount();
 
     fetch('/admin/member/edit', {
         method: 'POST',
@@ -254,7 +159,6 @@ function updateMemberStatus(select) {
         body: JSON.stringify({ _id: memberId, memberStatus }),
     })
     .then(res => res.json())
-    .then(() => alert('Member status updated'))
     .catch(() => alert('Failed to update status'));
 }
 

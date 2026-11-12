@@ -2,6 +2,7 @@ import express from 'express';
 import path from 'path';
 import router from './router';
 import routerAdmin from './router-admin';
+import routerInternal from './router-internal';
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 import { MORGAN_FORMAT } from './libs/config';
@@ -85,6 +86,7 @@ app.get('/', (req, res, next) => {
     next();
 });
 
+app.use('/internal', routerInternal);  // service-to-service (car-microservice)
 app.use('/admin', routerAdmin);  // SSR
 app.use('/', router);             // SPA
 

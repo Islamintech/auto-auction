@@ -1,73 +1,77 @@
 <%- include('includes/header') %>
 <%- include('includes/nav', { page: 'home' }) %>
-<link rel="stylesheet" type="text/css" href="/css/home.css" />
 
 <body>
-  <div class="home-container">
+<main>
+  <div class="page">
 
     <% if(!member) { %>
 
-    <!-- Guest Hero -->
-    <div class="hero-guest">
-      <h1 class="vault-title"><span>AUTO</span><em>AUCTION</em></h1>
-      <p class="vault-sub">ADMIN MANAGEMENT INTERFACE</p>
-      <div class="guest-actions">
-        <a href="/admin/login" class="btn btn--primary">Login to Dashboard</a>
-        <a href="/admin/signup" class="btn btn--ghost">Create Account</a>
+    <div class="flex flex-col items-center justify-center text-center" style="min-height:60vh; gap:20px">
+      <h1 class="page-title" style="font-size:34px">AutoAuction admin</h1>
+      <p class="page-sub" style="margin-top:0">Sign in to manage inventory, members and content.</p>
+      <div class="flex flex-wrap gap-3 justify-center">
+        <a href="/admin/login" class="btn btn-primary">Log in</a>
+        <a href="/admin/signup" class="btn btn-ghost">Create account</a>
       </div>
     </div>
 
     <% } else { %>
 
-    <!-- Dashboard -->
-    <div class="dashboard">
-
-      <div class="dash-hero">
-        <h1 class="vault-title"><span>AUTO</span><em>AUCTION</em></h1>
-        <p class="vault-sub">ADMIN MANAGEMENT INTERFACE</p>
+    <div class="page-head">
+      <div>
+        <h1 class="page-title">Overview</h1>
+        <p class="page-sub">Welcome back<%= member.memberNick ? ', ' + member.memberNick : '' %>.</p>
       </div>
-
-      <!-- Stat Cards -->
-      <div class="stat-cards">
-        <a href="/admin/car/all" class="stat-card">
-          <div class="stat-card-top">
-            <div class="stat-card-icon">🚗</div>
-            <div class="stat-card-label">LIVE INVENTORY</div>
-          </div>
-          <div class="stat-card-value"><%= stats ? stats.cars : '—' %></div>
-          <div class="stat-card-sub">↗ total cars</div>
-        </a>
-        <a href="/admin/member/all" class="stat-card">
-          <div class="stat-card-top">
-            <div class="stat-card-icon">👤</div>
-            <div class="stat-card-label">ACTIVE MEMBERS</div>
-          </div>
-          <div class="stat-card-value"><%= stats ? stats.members : '—' %></div>
-          <div class="stat-card-sub">↗ registered users</div>
-        </a>
-        <a href="/admin/consultation/all" class="stat-card">
-          <div class="stat-card-top">
-            <div class="stat-card-icon">💬</div>
-            <div class="stat-card-label">CONSULTATIONS</div>
-          </div>
-          <div class="stat-card-value"><%= stats ? stats.consultations : '—' %></div>
-          <div class="stat-card-sub">● <%= stats ? stats.pending : 0 %> pending</div>
-        </a>
-        <a href="/admin/post/all" class="stat-card">
-          <div class="stat-card-top">
-            <div class="stat-card-icon">📝</div>
-            <div class="stat-card-label">EDITORIAL POSTS</div>
-          </div>
-          <div class="stat-card-value"><%= stats ? stats.posts : '—' %></div>
-          <div class="stat-card-sub">↗ active posts</div>
-        </a>
-      </div>
-
     </div>
+
+    <div class="stat-grid">
+      <a href="/admin/car/all" class="stat">
+        <div class="stat-icon">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 17H3v-5l2-5h14l2 5v5h-2"/><circle cx="7.5" cy="17" r="2"/><circle cx="16.5" cy="17" r="2"/></svg>
+        </div>
+        <div class="stat-label">Cars</div>
+        <div class="stat-value num"><%= stats ? stats.cars : '—' %></div>
+        <div class="stat-sub">Listings in inventory</div>
+      </a>
+
+      <a href="/admin/member/all" class="stat">
+        <div class="stat-icon">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg>
+        </div>
+        <div class="stat-label">Members</div>
+        <div class="stat-value num"><%= stats ? stats.members : '—' %></div>
+        <div class="stat-sub">Registered users</div>
+      </a>
+
+      <a href="/admin/consultation/all" class="stat">
+        <div class="stat-icon">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 8.5 8.5 0 0 1-3.8-.9L3 21l1.9-5.2A8.4 8.4 0 0 1 4 11.5a8.4 8.4 0 0 1 8.5-8.4 8.4 8.4 0 0 1 8.5 8.4z"/></svg>
+        </div>
+        <div class="stat-label">Consultations</div>
+        <div class="stat-value num"><%= stats ? stats.consultations : '—' %></div>
+        <div class="stat-sub">
+          <% if (stats && stats.pending) { %>
+            <span class="tag tag-amber"><%= stats.pending %> pending</span>
+          <% } else { %>
+            Nothing pending
+          <% } %>
+        </div>
+      </a>
+
+      <a href="/admin/post/all" class="stat">
+        <div class="stat-icon">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+        </div>
+        <div class="stat-label">Posts</div>
+        <div class="stat-value num"><%= stats ? stats.posts : '—' %></div>
+        <div class="stat-sub">News and articles</div>
+      </a>
+    </div>
+
     <% } %>
   </div>
+</main>
 
-  <script type="text/javascript" src="/js/home.js"></script>
 </body>
-
 <%- include('includes/footer') %>

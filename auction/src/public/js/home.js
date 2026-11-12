@@ -1,1 +1,0 @@
-// Dashboard interactions (currently none).

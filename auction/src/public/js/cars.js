@@ -188,12 +188,12 @@ function openSaleModal(select) {
         ? new Date(car.saleDate).toISOString().slice(0, 10)
         : new Date().toISOString().slice(0, 10);
 
-    modal.classList.remove('hidden');
+    modal.hidden = false;
 }
 
 function closeSaleModal() {
     const modal = document.getElementById('sale-modal');
-    if (modal) modal.classList.add('hidden');
+    if (modal) modal.hidden = true;
     // Revert the dropdown to the car's saved status since the sale was not confirmed.
     if (saleSourceSelect) {
         const car = getRowCar(saleSourceSelect);
@@ -241,7 +241,7 @@ document.addEventListener('DOMContentLoaded', () => {
 function toggleEditSaleFields(form) {
     const wrap = document.getElementById('edit-sale-fields');
     if (!wrap || !form.elements.carStatus) return;
-    wrap.classList.toggle('hidden', form.elements.carStatus.value !== 'SOLD');
+    wrap.hidden = form.elements.carStatus.value !== 'SOLD';
 }
 
 function openEditCarModal(button) {
@@ -265,7 +265,6 @@ function openEditCarModal(button) {
         'carMileage',
         'carPrice',
         'carColor',
-        'carMake',
         'carModel',
         'carFuel',
         'carTransmission',
@@ -292,19 +291,19 @@ function openEditCarModal(button) {
         const img = document.createElement('img');
         img.src = /^https?:\/\//.test(image) ? image : `/${image}`;
         img.alt = car.carTitle || 'car';
-        img.className = 'w-full h-24 object-cover rounded border border-outline bg-black';
+        img.className = 'thumb w-full h-24';
         imageGrid.appendChild(img);
     });
     if (!imageGrid.children.length) {
-        imageGrid.innerHTML = '<div class="col-span-2 h-24 rounded border border-outline bg-black/40 flex items-center justify-center text-on-surface-faint text-xs font-mono uppercase">No images</div>';
+        imageGrid.innerHTML = '<div class="thumb col-span-2 h-24" style="font-size:12.5px">No images</div>';
     }
 
-    modal.classList.remove('hidden');
+    modal.hidden = false;
 }
 
 function closeEditCarModal() {
     const modal = document.getElementById('edit-car-modal');
-    if (modal) modal.classList.add('hidden');
+    if (modal) modal.hidden = true;
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -322,7 +321,7 @@ document.addEventListener('DOMContentLoaded', () => {
         event.preventDefault();
         const carId = editForm.elements._id.value;
         const payload = {};
-        const optionalFields = ['carVin', 'carColor', 'carMake', 'carModel', 'carDesc'];
+        const optionalFields = ['carVin', 'carColor', 'carModel', 'carDesc'];
 
         [
             'carStatus',

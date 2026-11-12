@@ -4,7 +4,7 @@ import { T } from '../libs/types/common';
 import CarService from '../models/car.service';
 import { AdminRequest, ExtendedRequest } from '../libs/types/member';
 import { CarInput, CarInquiry, CarUpdateInput } from '../libs/types/car';
-import { CarBrand, CarColor, CarCondition, CarFuel, CarStatus, CarTransmission, CarType } from '../libs/enums/car.enum';
+import { CAR_BRAND_SUGGESTIONS, CAR_COLOR_SUGGESTIONS, CarCondition, CarFuel, CarStatus, CarTransmission, CarType } from '../libs/enums/car.enum';
 import { toClientCar, toClientCars } from '../libs/utils/carTransformer';
 import CurrencyService from '../models/currency.service';
 
@@ -24,7 +24,7 @@ carController.getCars = async (req: Request, res: Response) => {
             limit: Number(limit) || 12,
         };
 
-        if (carBrand) inquiry.carBrand = carBrand as CarBrand;
+        if (carBrand) inquiry.carBrand = String(carBrand);
         if (search) inquiry.search = String(search);
 
         const result = await carService.getCars(inquiry);
@@ -122,14 +122,21 @@ carController.vinLookup = async (req: Request, res: Response) => {
     }
 };
 
+// Brand and color are free-text fields; the admin form offers the seed list plus
+// whatever has already been used, so existing values stay one click away.
+const suggest = (seed: string[], cars: any[], key: string): string[] => {
+    const used = (cars || []).map((c) => c?.[key]).filter(Boolean).map(String);
+    return Array.from(new Set([...seed, ...used])).sort();
+};
+
 /** SSR **/
 carController.getAllCars = async (req: Request, res: Response) => {
     try {
         const data = await carService.getAllCars();
         res.render('cars', {
             cars: data,
-            CarBrand: Object.values(CarBrand),
-            CarColor: Object.values(CarColor),
+            CarBrand: suggest(CAR_BRAND_SUGGESTIONS, data, 'carBrand'),
+            CarColor: suggest(CAR_COLOR_SUGGESTIONS, data, 'carColor'),
             CarStatus: Object.values(CarStatus),
             CarType: Object.values(CarType),
             CarCondition: Object.values(CarCondition),

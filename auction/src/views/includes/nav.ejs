@@ -1,58 +1,52 @@
-<header class="fixed top-0 w-full h-[60px] z-50 bg-background/80 backdrop-blur-xl border-b border-primary/20 flex justify-center px-4 sm:px-6">
-  <div class="w-full max-w-[1300px] flex justify-between items-center">
+<header class="topbar">
+  <div class="topbar-inner">
 
-    <a href="/" class="nav-brand no-underline" title="Go to landing page">
-     <img src="/img/logo.png" alt="AutoAuction" class="w-8 h-8 object-contain flex-shrink-0 dark:invert" />
-    <span class="brand-name">AUTOAUCTION</span>
-  </a>
+    <a href="/" class="brand" title="Go to landing page">
+      <img src="/img/logo.png" alt="" class="dark:invert" />
+      <span class="brand-name">AutoAuction</span>
+    </a>
 
-    <!-- Desktop nav -->
-    <nav class="hidden md:flex gap-8 text-[11px] uppercase tracking-[0.2em] font-mono">
-      <a class="<%= page === 'home'          ? 'text-primary border-b border-primary pb-1' : 'text-on-surface-secondary hover:text-primary' %> transition-colors" href="/admin">Home</a>
-      <a class="<%= page === 'cars'          ? 'text-primary border-b border-primary pb-1' : 'text-on-surface-secondary hover:text-primary' %> transition-colors" href="/admin/car/all">Cars</a>
-      <a class="<%= page === 'members'       ? 'text-primary border-b border-primary pb-1' : 'text-on-surface-secondary hover:text-primary' %> transition-colors" href="/admin/member/all">Members</a>
-      <a class="<%= page === 'consultations' ? 'text-primary border-b border-primary pb-1' : 'text-on-surface-secondary hover:text-primary' %> transition-colors" href="/admin/consultation/all">Consultations</a>
-      <a class="<%= page === 'posts'         ? 'text-primary border-b border-primary pb-1' : 'text-on-surface-secondary hover:text-primary' %> transition-colors" href="/admin/post/all">Posts</a>
+    <nav class="navlinks hidden md:flex">
+      <a class="navlink <%= page === 'home'          ? 'active' : '' %>" href="/admin">Overview</a>
+      <a class="navlink <%= page === 'cars'          ? 'active' : '' %>" href="/admin/car/all">Cars</a>
+      <a class="navlink <%= page === 'members'       ? 'active' : '' %>" href="/admin/member/all">Members</a>
+      <a class="navlink <%= page === 'consultations' ? 'active' : '' %>" href="/admin/consultation/all">Consultations</a>
+      <a class="navlink <%= page === 'posts'         ? 'active' : '' %>" href="/admin/post/all">Posts</a>
     </nav>
 
-    <div class="flex items-center gap-3 sm:gap-4">
-      <button type="button" class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme" title="Toggle theme">
+    <div class="flex items-center gap-2">
+      <button type="button" class="iconbtn theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme" title="Toggle theme">
         <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
         <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
       </button>
 
-      <!-- Desktop-only logout + avatar -->
-      <a href="/admin/logout" onclick="return confirm('Logout?')"
-        class="hidden md:inline text-on-surface-secondary hover:text-danger transition-colors font-mono text-[10px] uppercase tracking-widest">
-        Logout
-      </a>
-      <div class="flex h-8 w-8 rounded-full bg-surface items-center justify-center border border-outline text-primary font-mono text-xs font-bold overflow-hidden flex-shrink-0">
+      <a href="/admin/logout" onclick="return confirm('Log out?')" class="navlink hidden md:inline-block">Log out</a>
+
+      <div class="avatar w-8 h-8 text-xs">
         <% if(member && member.memberImage) { %>
-          <img src="<%= imgUrl(member.memberImage) %>" class="w-full h-full object-cover" />
+          <img src="<%= imgUrl(member.memberImage) %>" alt="" />
         <% } else if(member) { %>
           <%= member.memberNick?.charAt(0).toUpperCase() %>
         <% } %>
       </div>
 
-      <!-- Mobile hamburger -->
-      <button type="button" id="nav-toggle" onclick="toggleMobileMenu()" class="md:hidden theme-toggle" aria-label="Open menu" aria-expanded="false">
-        <svg id="nav-icon-open" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-        <svg id="nav-icon-close" class="hidden" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      <button type="button" id="nav-toggle" onclick="toggleMobileMenu()" class="iconbtn md:hidden" aria-label="Open menu" aria-expanded="false">
+        <svg id="nav-icon-open" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        <svg id="nav-icon-close" class="hidden" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
     </div>
 
   </div>
 </header>
 
-<!-- Mobile dropdown menu -->
-<div id="mobile-menu" class="md:hidden hidden fixed top-[60px] left-0 w-full z-40 bg-background/95 backdrop-blur-xl border-b border-primary/20 shadow-2xl">
-  <nav class="flex flex-col px-4 py-3 text-xs uppercase tracking-[0.2em] font-mono">
-    <a class="py-3 border-b border-outline/40 <%= page === 'home'          ? 'text-primary' : 'text-on-surface-secondary' %>" href="/admin">Home</a>
-    <a class="py-3 border-b border-outline/40 <%= page === 'cars'          ? 'text-primary' : 'text-on-surface-secondary' %>" href="/admin/car/all">Cars</a>
-    <a class="py-3 border-b border-outline/40 <%= page === 'members'       ? 'text-primary' : 'text-on-surface-secondary' %>" href="/admin/member/all">Members</a>
-    <a class="py-3 border-b border-outline/40 <%= page === 'consultations' ? 'text-primary' : 'text-on-surface-secondary' %>" href="/admin/consultation/all">Consultations</a>
-    <a class="py-3 border-b border-outline/40 <%= page === 'posts'         ? 'text-primary' : 'text-on-surface-secondary' %>" href="/admin/post/all">Posts</a>
-    <a class="py-3 text-danger" href="/admin/logout" onclick="return confirm('Logout?')">Logout</a>
+<div id="mobile-menu" class="mobile-menu md:hidden" hidden>
+  <nav>
+    <a class="<%= page === 'home'          ? 'active' : '' %>" href="/admin">Overview</a>
+    <a class="<%= page === 'cars'          ? 'active' : '' %>" href="/admin/car/all">Cars</a>
+    <a class="<%= page === 'members'       ? 'active' : '' %>" href="/admin/member/all">Members</a>
+    <a class="<%= page === 'consultations' ? 'active' : '' %>" href="/admin/consultation/all">Consultations</a>
+    <a class="<%= page === 'posts'         ? 'active' : '' %>" href="/admin/post/all">Posts</a>
+    <a href="/admin/logout" onclick="return confirm('Log out?')" style="color: rgb(var(--red))">Log out</a>
   </nav>
 </div>
 
@@ -60,7 +54,8 @@
   function toggleMobileMenu() {
     var menu = document.getElementById('mobile-menu');
     var btn = document.getElementById('nav-toggle');
-    var open = menu.classList.toggle('hidden') === false;
+    var open = menu.hidden;
+    menu.hidden = !open;
     document.getElementById('nav-icon-open').classList.toggle('hidden', open);
     document.getElementById('nav-icon-close').classList.toggle('hidden', !open);
     btn.setAttribute('aria-expanded', String(open));

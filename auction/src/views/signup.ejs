@@ -1,127 +1,78 @@
 <%- include('includes/header') %>
 
-<link rel="stylesheet" type="text/css" href="/css/signup.css" />
-
 <body>
-  <div class="signup-page">
+<main style="padding-top:0; display:flex; align-items:center; justify-content:center; padding-left:16px; padding-right:16px">
+  <div style="width:100%; max-width:520px; padding:48px 0">
 
-    <!-- Left Panel -->
-    <div class="signup-left">
-      <a href="/admin" class="back-link">← Back to Home</a>
-      <div class="login-brand">
-        <span class="brand-icon">⬡</span>
-        <span class="brand-name">AUTOAUCTION</span>
-      </div>
-      <p class="login-tagline">Korea-Based Car Export Platform</p>
-      <div class="left-note">
-        <div class="note-item">✓ Manage cars and listings</div>
-        <div class="note-item">✓ Handle buyer consultations</div>
-        <div class="note-item">✓ Moderate community content</div>
-        <div class="note-item">✓ Track member activity</div>
-      </div>
+    <div class="flex items-center justify-center gap-2.5" style="margin-bottom:28px">
+      <img src="/img/logo.png" alt="" style="width:30px; height:30px; object-fit:contain" class="dark:invert" />
+      <span class="brand-name" style="font-size:17px">AutoAuction</span>
     </div>
 
-    <!-- Right Panel -->
-    <div class="signup-right">
-      <form
-        class="signup-form"
-        action="/admin/signup"
-        method="POST"
-        enctype="multipart/form-data"
-        onsubmit="return validateSignupForm()"
-      >
-        <div class="form-header">
-          <h1 class="form-title">Create Admin Account</h1>
-          <p class="form-subtitle">
-            Already have an account?
-            <a href="/admin/login">Login</a>
-          </p>
-        </div>
+    <div class="card">
+      <div class="card-body">
+        <h1 style="font-size:20px; font-weight:650; letter-spacing:-0.02em">Create an admin account</h1>
+        <p class="page-sub" style="margin-bottom:22px">
+          Already have one? <a href="/admin/login" style="color:rgb(var(--accent))">Sign in</a>.
+        </p>
 
-        <!-- Row 1 -->
-        <div class="form-row">
-          <div class="form-group">
-            <label for="memberNick">Username *</label>
-            <input
-              id="memberNick"
-              type="text"
-              name="memberNick"
-              placeholder="Enter username"
-              required
-              autocomplete="username"
-            />
-          </div>
-          <div class="form-group">
-            <label for="memberPhone">Phone *</label>
-            <input
-              id="memberPhone"
-              type="text"
-              name="memberPhone"
-              placeholder="+82 10 0000 0000"
-              required
-            />
-          </div>
-        </div>
+        <form action="/admin/signup" method="POST" enctype="multipart/form-data"
+              onsubmit="return validateSignupForm()" class="flex flex-col gap-5">
 
-        <!-- Row 2 -->
-        <div class="form-row">
-          <div class="form-group">
-            <label for="memberPassword">Password *</label>
-            <input
-              id="memberPassword"
-              type="password"
-              name="memberPassword"
-              placeholder="Enter password"
-              required
-              autocomplete="new-password"
-            />
-          </div>
-          <div class="form-group">
-            <label for="confirmPassword">Confirm Password *</label>
-            <input
-              id="confirmPassword"
-              type="password"
-              name="confirmPassword"
-              placeholder="Repeat password"
-              required
-              autocomplete="new-password"
-            />
-          </div>
-        </div>
-
-        <!-- Profile Image -->
-        <div class="form-group form-group--full">
-          <label>Profile Image</label>
-          <div class="image-upload-area" id="image-upload-area">
-            <img
-              src="/img/logo.png"
-              id="image-preview"
-              class="image-preview"
-            />
-            <div class="image-upload-text">
-              <p class="upload-main">Click to upload profile image</p>
-              <p class="upload-sub">JPG, JPEG or PNG only</p>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div class="field">
+              <label for="memberNick">Username *</label>
+              <input id="memberNick" name="memberNick" type="text" required autocomplete="username"
+                     class="input" placeholder="Choose a username" />
             </div>
-            <input
-              type="file"
-              id="input-file"
-              name="memberImage"
-              accept=".jpg,.jpeg,.png"
-              onchange="previewProfileImage(this)"
-            />
+            <div class="field">
+              <label for="memberPhone">Phone *</label>
+              <input id="memberPhone" name="memberPhone" type="text" required
+                     class="input input-mono" placeholder="+82 10 0000 0000" />
+            </div>
+            <div class="field">
+              <label for="memberPassword">Password *</label>
+              <input id="memberPassword" name="memberPassword" type="password" required
+                     autocomplete="new-password" class="input" placeholder="••••••••" />
+            </div>
+            <div class="field">
+              <label for="confirmPassword">Confirm password *</label>
+              <input id="confirmPassword" name="confirmPassword" type="password" required
+                     autocomplete="new-password" class="input" placeholder="••••••••" />
+            </div>
           </div>
-        </div>
 
-        <input name="memberType" value="ADMIN" hidden />
+          <div class="field">
+            <label>Profile image <span class="label-hint">— optional</span></label>
+            <div class="dropzone flex-row gap-4 p-4" id="image-upload-area"
+                 style="align-items:center; justify-content:flex-start">
+              <div class="avatar w-16 h-16">
+                <img src="/img/logo.png" id="image-preview" alt="" />
+              </div>
+              <div style="text-align:left">
+                <p style="font-size:13px; color:rgb(var(--text-muted))">Click to upload a profile image</p>
+                <p class="hint">JPG, JPEG or PNG</p>
+              </div>
+              <input type="file" id="input-file" name="memberImage" accept=".jpg,.jpeg,.png"
+                     onchange="previewProfileImage(this)" />
+            </div>
+          </div>
 
-        <button type="submit" class="submit-btn">Create Account</button>
+          <input name="memberType" value="ADMIN" hidden />
 
-      </form>
+          <button type="submit" class="btn btn-primary" style="width:100%">Create account</button>
+        </form>
+      </div>
+
+      <div class="card-foot" style="justify-content:center">
+        <a href="/admin">Back to overview</a>
+      </div>
     </div>
 
+    <p class="hint" style="text-align:center; margin-top:20px">© 2026 autoauction.kr</p>
   </div>
+</main>
 
-  <script type="text/javascript" src="/js/signup.js"></script>
+<script type="text/javascript" src="/js/signup.js"></script>
 </body>
-
 <%- include('includes/footer') %>

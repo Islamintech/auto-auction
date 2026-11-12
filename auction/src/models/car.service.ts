@@ -156,14 +156,10 @@ class CarService {
     public async commentCar(memberId: ObjectId, id: string, input: any): Promise<Car> {
         const carId = shapeIntoMongooseObjectId(id);
 
-        const CommentModel = (await import('../schema/Comment.model')).default;
-        await CommentModel.create({
-            memberId,
-            commentRefId: carId,
-            commentGroup: 'CAR',
-            commentContent: input.commentContent,
-        });
-
+        // Claim the comment slot first. Creating the comment before this ran left
+        // an orphan row behind whenever the car turned out to be missing, sold or
+        // deleted: the request 404'd but the row was already committed, and
+        // carCommentCount never moved, so the count and the rows disagreed.
         const result = await this.carModel
             .findOneAndUpdate(
                 { _id: carId, carStatus: CarStatus.ONSALE },
@@ -172,6 +168,22 @@ class CarService {
             )
             .exec();
         if (!result) throw new Errors(HttpCode.NOT_FOUND, Message.NO_DATA_FOUND);
+
+        const CommentModel = (await import('../schema/Comment.model')).default;
+        try {
+            await CommentModel.create({
+                memberId,
+                commentRefId: carId,
+                commentGroup: 'CAR',
+                commentContent: input.commentContent,
+            });
+        } catch (err) {
+            // Put the counter back so a failed insert cannot inflate it.
+            await this.carModel
+                .findByIdAndUpdate(carId, { $inc: { carCommentCount: -1 } })
+                .exec();
+            throw err;
+        }
 
         await this.pointService.awardPoints(
             { _id: memberId } as any,
@@ -219,6 +231,36 @@ class CarService {
         }
     }
 
+    /**
+     * Creates a catalogue car from an approved import, or returns the one an
+     * earlier call already created for the same (importSource, importId).
+     *
+     * Idempotent on purpose: the ingestion service retries when it cannot tell
+     * whether a call landed (timeout, dropped connection), and a retry must not
+     * list the same car twice.
+     */
+    public async importCar(input: CarInput): Promise<{ car: Car; created: boolean }> {
+        const key = { importSource: input.importSource, importId: input.importId };
+        const existing = await this.carModel.findOne(key).lean().exec();
+        if (existing) return { car: existing as unknown as Car, created: false };
+
+        try {
+            if (!String(input.carVin ?? '').trim()) delete input.carVin;
+            const car = await this.carModel.create(input);
+            return { car: car.toObject() as unknown as Car, created: true };
+        } catch (err: any) {
+            // Lost a race with a concurrent retry of the same import: hand back
+            // the car the other request created.
+            if (err?.code === 11000 && err?.keyPattern?.importId) {
+                const winner = await this.carModel.findOne(key).lean().exec();
+                if (winner) return { car: winner as unknown as Car, created: false };
+            }
+            console.log('Error, importCar:', err);
+            if (err?.code === 11000) throw this.duplicateKeyError(err);
+            throw new Errors(HttpCode.BAD_REQUEST, Message.CREATED_FAILED);
+        }
+    }
+
     public async updateChosenCar(id: string, input: CarUpdateInput): Promise<Car> {
         if (!mongoose.isValidObjectId(id))
             throw new Errors(HttpCode.BAD_REQUEST, Message.NO_DATA_FOUND);
@@ -254,6 +296,28 @@ class CarService {
                 delete set.carVin;
                 update.$unset = { ...(update.$unset ?? {}), carVin: '' };
             }
+        }
+
+        // A sold car has to carry its sale record. The admin panel enforces this
+        // in the browser, which left the API able to produce a SOLD car with no
+        // buyer, price, date or VIN — unverifiable through /car/verify/:vin and
+        // blank in the sold table. Merge with the stored document first so a
+        // partial edit of an already-sold car does not have to resend everything.
+        if (set.carStatus === CarStatus.SOLD) {
+            const existing = await this.carModel.findById(carId).lean().exec();
+            if (!existing) throw new Errors(HttpCode.NOT_FOUND, Message.NO_DATA_FOUND);
+
+            const merged = { ...existing, ...set } as T;
+            const missing =
+                !String(merged.carVin ?? '').trim() ||
+                !String(merged.buyerName ?? '').trim() ||
+                merged.salePrice === undefined ||
+                merged.salePrice === null ||
+                merged.salePrice === '' ||
+                !merged.saleDate;
+
+            if (missing)
+                throw new Errors(HttpCode.BAD_REQUEST, Message.INCOMPLETE_SALE);
         }
 
         if (set.carStatus && set.carStatus !== CarStatus.SOLD) {

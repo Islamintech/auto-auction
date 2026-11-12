@@ -152,14 +152,8 @@ class PostService {
     public async commentPost(memberId: ObjectId, id: string, input: any): Promise<Post> {
         const postId = shapeIntoMongooseObjectId(id);
 
-        const CommentModel = (await import('../schema/Comment.model')).default;
-        await CommentModel.create({
-            memberId,
-            commentRefId: postId,
-            commentGroup: 'POST',
-            commentContent: input.commentContent,
-        });
-
+        // Same ordering as commentCar: verify the post can take a comment before
+        // writing one, or a draft/deleted post collects rows that nothing counts.
         const result = await this.postModel
             .findOneAndUpdate(
                 { _id: postId, postStatus: PostStatus.ACTIVE },
@@ -168,6 +162,21 @@ class PostService {
             )
             .exec();
         if (!result) throw new Errors(HttpCode.NOT_FOUND, Message.NO_DATA_FOUND);
+
+        const CommentModel = (await import('../schema/Comment.model')).default;
+        try {
+            await CommentModel.create({
+                memberId,
+                commentRefId: postId,
+                commentGroup: 'POST',
+                commentContent: input.commentContent,
+            });
+        } catch (err) {
+            await this.postModel
+                .findByIdAndUpdate(postId, { $inc: { postCommentCount: -1 } })
+                .exec();
+            throw err;
+        }
 
         // +4 points for commenting on a post
         await this.memberService.addUserPoints({ _id: memberId } as any, 4);

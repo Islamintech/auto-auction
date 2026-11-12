@@ -1,179 +1,59 @@
 <%- include('includes/header') %>
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+<body>
+<main style="padding-top:0; display:flex; align-items:center; justify-content:center; padding-left:16px; padding-right:16px">
+  <div style="width:100%; max-width:400px; padding:48px 0">
+
+    <div class="flex items-center justify-center gap-2.5" style="margin-bottom:28px">
+      <img src="/img/logo.png" alt="" style="width:30px; height:30px; object-fit:contain" class="dark:invert" />
+      <span class="brand-name" style="font-size:17px">AutoAuction</span>
+    </div>
+
+    <div class="card">
+      <div class="card-body">
+        <h1 style="font-size:20px; font-weight:650; letter-spacing:-0.02em">Sign in</h1>
+        <p class="page-sub" style="margin-bottom:22px">Admin access only.</p>
+
+        <form action="/admin/login" method="POST" class="flex flex-col gap-4">
+          <div class="field">
+            <label for="memberNick">Username</label>
+            <input id="memberNick" name="memberNick" type="text" required autocomplete="username"
+                   class="input" placeholder="Your admin username" />
+          </div>
+
+          <div class="field">
+            <label for="memberPassword">Password</label>
+            <div style="position:relative">
+              <input id="memberPassword" name="memberPassword" type="password" required
+                     autocomplete="current-password" class="input" style="padding-right:40px" placeholder="••••••••" />
+              <button type="button" onclick="togglePassword()" aria-label="Show password"
+                      class="icon-btn" style="position:absolute; right:4px; top:50%; transform:translateY(-50%)">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary" style="width:100%; margin-top:4px">Sign in</button>
+        </form>
+      </div>
+
+      <div class="card-foot" style="justify-content:center; gap:16px">
+        <a href="/admin/signup" style="color:rgb(var(--accent))">Create an account</a>
+        <span style="color:rgb(var(--border))">·</span>
+        <a href="/admin">Back to overview</a>
+      </div>
+    </div>
+
+    <p class="hint" style="text-align:center; margin-top:20px">© 2026 autoauction.kr</p>
+  </div>
+</main>
+
 <script>
-  tailwind.config = {
-    darkMode: "class",
-    theme: {
-      extend: {
-        colors: {
-          "primary": "#fbbf24",
-          "background": "#121414",
-          "surface": "#121101",
-          "on-surface": "#ffffff",
-          "on-surface-variant": "rgba(255,255,255,0.5)",
-          "outline": "rgba(255,255,255,0.07)",
-          "outline-gold": "rgba(251,191,36,0.2)",
-          "card-bg": "rgba(255,255,255,0.02)",
-        },
-        fontFamily: {
-          headline: ["Inter", "Noto Sans KR", "system-ui", "sans-serif"],
-          body: ["Inter", "Noto Sans KR", "system-ui", "sans-serif"],
-          mono: ["ui-monospace", "SFMono-Regular", "SF Mono", "Menlo", "Consolas", "monospace"],
-        }
-      }
-    }
+  function togglePassword() {
+    const input = document.getElementById('memberPassword');
+    input.type = input.type === 'password' ? 'text' : 'password';
   }
 </script>
-<link rel="stylesheet" type="text/css" href="/css/login.css" />
-
-<body class="min-h-screen flex flex-col md:flex-row md:overflow-hidden">
-
-  <!-- Left Panel -->
-  <div class="relative w-full md:w-1/2 lg:w-3/5 h-44 md:h-full overflow-hidden flex items-center justify-center border-r border-outline">
-    <div class="absolute inset-0 z-0 bg-[#121414]">
-      <!-- Decorative sphere/pattern -->
-      <div class="absolute inset-0 opacity-10"
-        style="background-image: radial-gradient(#fbbf24 0.5px, transparent 0.5px); background-size: 32px 32px;"></div>
-      <div class="absolute inset-0 bg-gradient-to-r from-background via-background/80 to-background/20"></div>
-      <!-- Large hex icon -->
-      <div class="absolute inset-0 flex items-center justify-center opacity-5">
-        <span class="text-[32rem] text-primary leading-none">⬡</span>
-      </div>
-    </div>
-
-    <div class="relative z-10 p-6 md:p-16 lg:p-24 w-full max-w-3xl">
-      <div class="flex flex-col gap-3 md:gap-6">
-        <div class="flex items-center gap-3">
-          <span class="text-primary font-mono text-[10px] md:text-xs font-bold tracking-[0.4em] uppercase opacity-80">Private Access Only</span>
-          <div class="h-px w-12 bg-primary/30"></div>
-        </div>
-        <h1 class="text-3xl md:text-7xl font-mono font-bold tracking-tighter text-primary flex items-center gap-3 md:gap-4" style="text-shadow: 0 0 20px rgba(251,191,36,0.3)">
-          <span class="text-2xl md:text-6xl">⬡</span> AUTOAUCTION
-        </h1>
-        <p class="hidden md:block text-on-surface-variant font-light text-lg md:text-2xl max-w-lg mt-4 border-l-2 border-primary/20 pl-6 leading-relaxed">
-          The precision vault for high-stakes automotive excellence. Manage your inventory with full control.
-        </p>
-        <div class="hidden md:flex gap-8 mt-8 opacity-40 grayscale">
-          <div class="flex flex-col">
-            <span class="text-2xl font-bold font-mono">256</span>
-            <span class="text-[10px] uppercase tracking-widest">Encryption</span>
-          </div>
-          <div class="flex flex-col">
-            <span class="text-2xl font-bold font-mono">V1.0</span>
-            <span class="text-[10px] uppercase tracking-widest">Protocol</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Right Panel -->
-  <div class="w-full md:w-1/2 lg:w-2/5 flex items-center justify-center p-6 sm:p-8 md:p-16 lg:p-20 bg-background relative">
-    <div class="absolute inset-0 opacity-[0.03] pointer-events-none"
-      style="background-image: radial-gradient(#fbbf24 0.5px, transparent 0.5px); background-size: 24px 24px;"></div>
-
-    <div class="w-full max-w-md relative z-10">
-
-      <!-- Form Header -->
-      <div class="mb-8 md:mb-12">
-        <h2 class="text-2xl sm:text-3xl font-mono font-semibold text-white tracking-tight">Command Center Login</h2>
-        <p class="text-on-surface-variant text-sm mt-2 font-medium">Authorized personnel only.</p>
-      </div>
-
-      <!-- Login Form -->
-      <form action="/admin/login" method="POST" class="flex flex-col gap-6 md:gap-8">
-
-        <!-- Username -->
-        <div class="group flex flex-col gap-2">
-          <label class="text-[10px] uppercase tracking-[0.2em] text-on-surface-variant font-bold group-focus-within:text-primary transition-colors" for="memberNick">
-            System Username
-          </label>
-          <div class="relative">
-            <input
-              id="memberNick"
-              name="memberNick"
-              type="text"
-              required
-              autocomplete="username"
-              placeholder="Enter identifier"
-              class="w-full bg-card-bg border-b-2 border-outline py-5 pl-5 pr-4 text-on-surface placeholder:text-white/20 focus:ring-0 focus:border-primary focus:bg-white/[0.04] transition-all duration-300 rounded-t-lg text-sm outline-none"
-            />
-          </div>
-        </div>
-
-        <!-- Password -->
-        <div class="group flex flex-col gap-2">
-          <label class="text-[10px] uppercase tracking-[0.2em] text-on-surface-variant font-bold group-focus-within:text-primary transition-colors" for="memberPassword">
-            Access Key
-          </label>
-          <div class="relative">
-            <input
-              id="memberPassword"
-              name="memberPassword"
-              type="password"
-              required
-              autocomplete="current-password"
-              placeholder="••••••••"
-              class="w-full bg-card-bg border-b-2 border-outline py-5 pl-5 pr-12 text-on-surface placeholder:text-white/20 focus:ring-0 focus:border-primary focus:bg-white/[0.04] transition-all duration-300 rounded-t-lg text-sm outline-none"
-            />
-            <button type="button" onclick="togglePassword()" class="absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-primary transition-colors text-sm">
-              👁
-            </button>
-          </div>
-        </div>
-
-        <!-- Remember me -->
-        <div class="flex items-center justify-between">
-          <label class="flex items-center gap-3 cursor-pointer group">
-            <input type="checkbox" class="h-4 w-4 rounded border-outline bg-card-bg text-primary cursor-pointer" />
-            <span class="text-xs text-on-surface-variant group-hover:text-white transition-colors">Maintain session</span>
-          </label>
-          <div class="flex items-center gap-2 text-[9px] uppercase tracking-widest text-white/20">
-            ✓ SECURED
-          </div>
-        </div>
-
-        <!-- Submit -->
-        <button type="submit"
-          class="group relative flex items-center justify-center gap-4 bg-primary text-background py-5 rounded-lg font-bold font-mono uppercase tracking-[0.2em] hover:bg-white transition-all duration-500 active:scale-[0.98] shadow-lg shadow-primary/10 text-sm">
-          Initialize Dashboard →
-        </button>
-
-      </form>
-
-      <!-- Footer links -->
-      <div class="mt-10 md:mt-16 pt-8 md:pt-10 border-t border-outline text-center">
-        <div class="flex justify-center gap-6 mb-6">
-          <a href="/admin/signup" class="text-[11px] uppercase tracking-widest text-on-surface-variant hover:text-primary transition-colors">
-            Register Admin
-          </a>
-          <span class="text-white/10">•</span>
-          <a href="/admin" class="text-[11px] uppercase tracking-widest text-on-surface-variant hover:text-primary transition-colors">
-            Back to Home
-          </a>
-        </div>
-        <p class="text-[9px] text-white/20 uppercase tracking-[0.3em] font-medium">
-          © 2026 autoauction.kr Precision Management Systems
-        </p>
-      </div>
-
-    </div>
-  </div>
-
-  <!-- Decorative corner -->
-  <div class="hidden lg:block fixed bottom-12 right-12 w-32 h-32 pointer-events-none opacity-[0.05]">
-    <svg class="w-full h-full text-primary fill-current" viewBox="0 0 100 100">
-      <path d="M50 0 L93.3 25 L93.3 75 L50 100 L6.7 75 L6.7 25 Z" fill="none" stroke="currentColor" stroke-width="0.5"/>
-      <path d="M50 15 L80.3 32.5 L80.3 67.5 L50 85 L19.7 67.5 L19.7 32.5 Z" fill="none" stroke="currentColor" stroke-width="0.2"/>
-    </svg>
-  </div>
-
-  <script>
-    function togglePassword() {
-      const input = document.getElementById('memberPassword');
-      input.type = input.type === 'password' ? 'text' : 'password';
-    }
-  </script>
 
 </body>
 <%- include('includes/footer') %>

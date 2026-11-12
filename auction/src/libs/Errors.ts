@@ -17,6 +17,7 @@ export enum Message {
     UPDATED_FAILED = "Update is failed!",
     DUPLICATE_CAR = "Another car already uses this brand, year and title!",
     DUPLICATE_VIN = "Another car is already registered with this VIN!",
+    INCOMPLETE_SALE = "A sold car needs a VIN, buyer name, sale price and sale date!",
     TOKEN_CREATION_FAILED = "Token creation error",
     NO_MEMBER_NICK = "No member with that nickname!",
     // One message for "no such user" and "wrong password" alike — separate

@@ -1,91 +1,95 @@
 <%- include('includes/header') %>
 
-<body class="bg-background">
-<main class="min-h-screen flex flex-col items-center px-4 sm:px-6 py-10 sm:py-16">
-  <div class="w-full max-w-xl">
+<body>
+<main style="padding-top:0">
+  <div style="max-width:600px; margin:0 auto; padding:48px 16px 64px">
 
-    <!-- Brand -->
-    <div class="flex items-center justify-center gap-3 mb-8 sm:mb-10">
-      <img src="/img/logo.png" alt="AutoAuction" class="w-9 h-9 object-contain flex-shrink-0 dark:invert" />
-      <span class="font-headline text-lg font-bold tracking-wide text-on-surface">AUTOAUCTION</span>
+    <div class="flex items-center justify-center gap-2.5" style="margin-bottom:28px">
+      <img src="/img/logo.png" alt="" style="width:30px; height:30px; object-fit:contain" class="dark:invert" />
+      <span class="brand-name" style="font-size:17px">AutoAuction</span>
     </div>
 
-    <div class="bg-surface rounded-card border border-outline shadow-2xl overflow-hidden">
-      <div class="px-5 sm:px-8 py-5 sm:py-6 border-b border-outline">
-        <h1 class="font-headline text-lg sm:text-xl font-bold text-on-surface">Verify a Sale by VIN</h1>
-        <p class="text-on-surface-secondary text-xs font-mono mt-1">Enter a vehicle's VIN to confirm its sale record.</p>
+    <div class="card">
+      <div class="card-body">
+        <h1 style="font-size:20px; font-weight:650; letter-spacing:-0.02em">Verify a sale by VIN</h1>
+        <p class="page-sub" style="margin-bottom:20px">Enter a vehicle's VIN to confirm its sale record.</p>
+
+        <form action="/vin" method="GET" class="field">
+          <label for="vin">Vehicle identification number</label>
+          <div class="flex flex-col sm:flex-row gap-2.5">
+            <input id="vin" name="vin" type="text" maxlength="17" required value="<%= vin %>"
+                   class="input input-mono uppercase" placeholder="1HGCM82633A004352" />
+            <button type="submit" class="btn btn-primary">Check</button>
+          </div>
+        </form>
       </div>
-
-      <form action="/vin" method="GET" class="p-5 sm:p-8">
-        <label class="block text-[10px] uppercase tracking-widest font-mono font-bold text-primary mb-2">Vehicle Identification Number</label>
-        <div class="flex flex-col sm:flex-row gap-3">
-          <input name="vin" type="text" maxlength="17" required value="<%= vin %>"
-            class="flex-1 bg-black/40 border border-outline rounded-lg focus:border-primary text-on-surface px-4 py-3 text-sm font-mono uppercase outline-none"
-            placeholder="e.g., 1HGCM82633A004352" />
-          <button type="submit"
-            class="px-6 py-3 rounded-lg bg-primary text-background uppercase font-mono text-[10px] font-bold hover:bg-primary/80 transition-all">
-            Check
-          </button>
-        </div>
-      </form>
     </div>
 
-    <!-- Result -->
     <% if (searched) { %>
       <% if (car && car.carStatus === 'SOLD') { %>
-        <div class="mt-6 bg-surface rounded-card border border-outline shadow-2xl overflow-hidden">
-          <div class="px-5 sm:px-8 py-5 border-b border-outline flex items-center gap-3">
-            <span class="w-2 h-2 rounded-full bg-success"></span>
-            <h3 class="font-headline text-sm font-bold text-on-surface">Sold Vehicle</h3>
+        <div class="card" style="margin-top:20px">
+          <div class="card-head">
+            <h3 class="card-title">Sold vehicle</h3>
+            <span class="tag tag-green"><span class="dot"></span> Verified</span>
           </div>
-          <div class="p-5 sm:p-8 space-y-5">
+
+          <div class="card-body flex flex-col gap-5">
             <div>
-              <div class="text-[10px] uppercase tracking-widest font-mono text-on-surface-faint mb-1">Vehicle</div>
-              <div class="text-base font-bold text-on-surface"><%= car.carTitle %></div>
-              <div class="text-xs text-on-surface-secondary font-mono uppercase mt-0.5"><%= car.carBrand %> • <%= car.carYear %></div>
+              <div class="label">Vehicle</div>
+              <div class="t-primary" style="font-size:16px; margin-top:2px"><%= car.carTitle %></div>
+              <div class="t-secondary"><%= car.carBrand %> · <%= car.carYear %></div>
             </div>
 
             <% var imgs = Array.isArray(car.carImages) ? car.carImages : []; %>
             <% if (imgs.length) { %>
             <div>
-              <div class="text-[10px] uppercase tracking-widest font-mono text-on-surface-faint mb-2">Photos</div>
-              <div class="grid grid-cols-4 gap-2">
+              <div class="label">Photos</div>
+              <div class="grid grid-cols-4 gap-2" style="margin-top:6px">
                 <% imgs.forEach(function(image, i){ %>
-                  <button type="button" onclick="openGallery(<%= i %>)"
-                    class="aspect-square rounded-lg overflow-hidden border border-outline bg-black/40 hover:border-primary transition-colors">
-                    <img src="<%= imgUrl(image) %>" alt="<%= car.carTitle %>" class="w-full h-full object-cover" />
+                  <button type="button" onclick="openGallery(<%= i %>)" class="thumb aspect-square"
+                          style="border:1px solid rgb(var(--border)); cursor:pointer; padding:0">
+                    <img src="<%= imgUrl(image) %>" alt="" />
                   </button>
                 <% }) %>
               </div>
             </div>
             <% } %>
+
             <div class="grid grid-cols-2 gap-5">
               <div>
-                <div class="text-[10px] uppercase tracking-widest font-mono text-on-surface-faint mb-1">VIN</div>
-                <div class="text-sm font-mono text-on-surface break-all"><%= car.carVin %></div>
+                <div class="label">VIN</div>
+                <div class="num" style="font-size:13px; word-break:break-all"><%= car.carVin %></div>
               </div>
               <div>
-                <div class="text-[10px] uppercase tracking-widest font-mono text-on-surface-faint mb-1">Buyer</div>
-                <div class="text-sm text-on-surface"><%= car.buyerName || '—' %></div>
+                <div class="label">Buyer</div>
+                <div style="font-size:13.5px"><%= car.buyerName || '—' %></div>
               </div>
               <div>
-                <div class="text-[10px] uppercase tracking-widest font-mono text-on-surface-faint mb-1">Sale Price</div>
-                <div class="text-sm font-mono font-bold text-success"><%= car.salePrice != null ? '₩' + car.salePrice.toLocaleString() : '—' %></div>
+                <div class="label">Sale price</div>
+                <div class="num" style="font-weight:600; color:rgb(var(--green))">
+                  <%= car.salePrice != null ? '₩' + car.salePrice.toLocaleString() : '—' %>
+                </div>
               </div>
               <div>
-                <div class="text-[10px] uppercase tracking-widest font-mono text-on-surface-faint mb-1">Sale Date</div>
-                <div class="text-sm font-mono text-on-surface"><%= car.saleDate ? new Date(car.saleDate).toISOString().slice(0,10) : '—' %></div>
+                <div class="label">Sale date</div>
+                <div class="num" style="font-size:13px">
+                  <%= car.saleDate ? new Date(car.saleDate).toISOString().slice(0,10) : '—' %>
+                </div>
               </div>
             </div>
           </div>
         </div>
       <% } else if (car) { %>
-        <div class="mt-6 bg-surface rounded-card border border-outline shadow-2xl p-5 sm:p-8 text-center">
-          <p class="text-sm text-on-surface">A vehicle with this VIN exists but has <span class="font-bold">not been sold</span>.</p>
+        <div class="card" style="margin-top:20px">
+          <div class="card-body" style="text-align:center">
+            <p>A vehicle with this VIN exists but has <strong>not been sold</strong>.</p>
+          </div>
         </div>
       <% } else { %>
-        <div class="mt-6 bg-surface rounded-card border border-outline shadow-2xl p-5 sm:p-8 text-center">
-          <p class="text-sm text-on-surface-secondary font-mono">No vehicle found for VIN "<%= vin %>".</p>
+        <div class="card" style="margin-top:20px">
+          <div class="card-body" style="text-align:center; color:rgb(var(--text-muted))">
+            <p>No vehicle found for VIN <span class="num">“<%= vin %>”</span>.</p>
+          </div>
         </div>
       <% } %>
     <% } %>
@@ -95,21 +99,25 @@
 
 <% var galleryImgs = (searched && car && car.carStatus === 'SOLD' && Array.isArray(car.carImages)) ? car.carImages : []; %>
 <% if (galleryImgs.length) { %>
-<!-- Slideable image lightbox -->
-<div id="gallery-lightbox" class="fixed inset-0 z-50 hidden bg-black/90 flex items-center justify-center select-none">
-  <button type="button" onclick="closeGallery()"
-    class="absolute top-5 right-6 text-white/80 hover:text-white text-3xl leading-none">&times;</button>
+<div id="gallery-lightbox" class="modal" hidden>
+  <div class="modal-scrim" style="background:rgb(2 6 23 / .92)"></div>
 
-  <button type="button" onclick="slideGallery(-1)"
-    class="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 text-white text-2xl flex items-center justify-center">&#8249;</button>
+  <button type="button" onclick="closeGallery()" aria-label="Close"
+    style="position:absolute; top:18px; right:20px; z-index:2; width:38px; height:38px; border-radius:99px; border:0; cursor:pointer; background:rgb(255 255 255 / .12); color:#fff; font-size:22px; line-height:1">&times;</button>
 
-  <img id="gallery-image" src="" alt="vehicle photo"
-    class="max-w-[90vw] max-h-[80vh] object-contain rounded-lg shadow-2xl" />
+  <button type="button" onclick="slideGallery(-1)" aria-label="Previous"
+    style="position:absolute; left:16px; top:50%; transform:translateY(-50%); z-index:2; width:44px; height:44px; border-radius:99px; border:0; cursor:pointer; background:rgb(255 255 255 / .12); color:#fff; font-size:24px; line-height:1">&#8249;</button>
 
-  <button type="button" onclick="slideGallery(1)"
-    class="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 text-white text-2xl flex items-center justify-center">&#8250;</button>
+  <div style="position:relative; height:100%; display:flex; align-items:center; justify-content:center; padding:0 72px">
+    <img id="gallery-image" src="" alt="Vehicle photo"
+         style="max-width:100%; max-height:80vh; object-fit:contain; border-radius:12px" />
+  </div>
 
-  <div id="gallery-counter" class="absolute bottom-6 left-1/2 -translate-x-1/2 text-white/70 font-mono text-xs"></div>
+  <button type="button" onclick="slideGallery(1)" aria-label="Next"
+    style="position:absolute; right:16px; top:50%; transform:translateY(-50%); z-index:2; width:44px; height:44px; border-radius:99px; border:0; cursor:pointer; background:rgb(255 255 255 / .12); color:#fff; font-size:24px; line-height:1">&#8250;</button>
+
+  <div id="gallery-counter" class="num"
+       style="position:absolute; bottom:22px; left:50%; transform:translateX(-50%); color:rgb(255 255 255 / .75); font-size:12.5px"></div>
 </div>
 
 <script>
@@ -128,11 +136,11 @@
   function openGallery(i) {
     galleryIndex = i || 0;
     renderGallery();
-    document.getElementById('gallery-lightbox').classList.remove('hidden');
+    document.getElementById('gallery-lightbox').hidden = false;
   }
 
   function closeGallery() {
-    document.getElementById('gallery-lightbox').classList.add('hidden');
+    document.getElementById('gallery-lightbox').hidden = true;
   }
 
   function slideGallery(step) {
@@ -143,16 +151,14 @@
 
   document.addEventListener('keydown', (e) => {
     const box = document.getElementById('gallery-lightbox');
-    if (!box || box.classList.contains('hidden')) return;
+    if (!box || box.hidden) return;
     if (e.key === 'ArrowRight') slideGallery(1);
     else if (e.key === 'ArrowLeft') slideGallery(-1);
     else if (e.key === 'Escape') closeGallery();
   });
 
-  // Click on the dark backdrop (not the image/arrows) closes the lightbox.
-  document.getElementById('gallery-lightbox').addEventListener('click', (e) => {
-    if (e.target.id === 'gallery-lightbox') closeGallery();
-  });
+  // Clicking the dark backdrop (not the image or arrows) closes the lightbox.
+  document.querySelector('#gallery-lightbox .modal-scrim').addEventListener('click', closeGallery);
 </script>
 <% } %>
 

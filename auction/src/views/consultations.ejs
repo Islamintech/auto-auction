@@ -1,246 +1,130 @@
 <%- include('includes/header') %>
 <%- include('includes/nav', { page: 'consultations' }) %>
 
-<style>
-  .status-pending    { background: rgba(251,191,36,0.1); color: #fbbf24; border: 1px solid rgba(251,191,36,0.2); }
-  .status-inprogress { background: rgba(56,189,248,0.1); color: #38bdf8; border: 1px solid rgba(56,189,248,0.2); }
-  .status-resolved   { background: rgba(52,211,153,0.1); color: #34d399; border: 1px solid rgba(52,211,153,0.2); }
-  .status-cancelled  { background: rgba(248,113,113,0.1); color: #f87171; border: 1px solid rgba(248,113,113,0.2); }
-  .channel-telegram  { background: rgba(0,136,204,0.1); color: #0088cc; }
-  .channel-whatsapp  { background: rgba(37,211,102,0.1); color: #25d366; }
-  .channel-phone     { background: rgba(52,211,153,0.1); color: #34d399; }
-  .channel-email     { background: rgba(251,191,36,0.1); color: #fbbf24; }
-  .filter-btn.active { border-color: rgba(251,191,36,0.4); color: #fbbf24; }
-  .scrollbar-hide::-webkit-scrollbar { display: none; }
-  .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+<body>
+<main>
+  <div class="page">
 
-  /* Readable native dropdown options */
-  select option {
-    background-color: rgb(var(--surface));
-    color: rgb(var(--on-surface));
-  }
-
-  /* Responsive card-style table on mobile */
-  @media (max-width: 768px) {
-    .responsive-table { border-collapse: separate; }
-    .responsive-table thead { display: none; }
-    .responsive-table,
-    .responsive-table tbody,
-    .responsive-table tr,
-    .responsive-table td { display: block; width: 100%; }
-
-    .responsive-table tbody { padding: 12px; }
-
-    .responsive-table tbody tr {
-      border: 1px solid rgb(var(--outline)) !important;
-      border-radius: 10px;
-      margin-bottom: 12px;
-      background: rgba(255,255,255,0.02);
-      overflow: hidden;
-    }
-
-    .responsive-table td {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 16px;
-      padding: 10px 16px !important;
-      text-align: right;
-      border-bottom: 1px solid rgb(var(--outline) / 0.4);
-    }
-    .responsive-table tr td:last-child { border-bottom: none; }
-
-    .responsive-table td::before {
-      content: attr(data-label);
-      font-family: var(--mono-font);
-      font-size: 10px;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: rgb(var(--on-surface) / 0.4);
-      text-align: left;
-      flex-shrink: 0;
-    }
-    .responsive-table td[data-label="#"] { display: none; }
-    .responsive-table td[colspan]::before { display: none; }
-    .responsive-table td[colspan] { text-align: center; justify-content: center; }
-    /* let truncated cells use available width */
-    .responsive-table td .truncate,
-    .responsive-table td .max-w-\[160px\],
-    .responsive-table td .max-w-\[200px\] { max-width: 60vw; }
-  }
-</style>
-
-<body class="bg-background">
-<main class="pt-[60px] min-h-screen">
-  <div class="max-w-[1300px] mx-auto p-4 sm:p-6 lg:p-8">
-
-    <!-- Page Header -->
-    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4 mb-8">
+    <div class="page-head">
       <div>
-        <h1 class="text-2xl font-headline font-bold text-on-surface tracking-tight uppercase">Consultation</h1>
-        <p class="text-on-surface-secondary text-xs font-mono mt-1 tracking-widest uppercase">Buyer Requests & Follow-ups</p>
+        <h1 class="page-title">Consultations</h1>
+        <p class="page-sub">Buyer requests and follow-ups</p>
       </div>
-      <div class="flex gap-4 items-center">
-        <div class="flex flex-col items-end">
-          <span class="text-[10px] text-on-surface-faint uppercase font-mono">Total</span>
-          <span class="text-xl font-mono text-primary font-bold"><%= consultations.length %></span>
+      <div class="metrics">
+        <div>
+          <span class="metric-label">Total</span>
+          <span class="metric-value num"><%= consultations.length %></span>
         </div>
-        <div class="w-px h-10 bg-outline mx-2"></div>
-        <div class="flex flex-col items-end">
-          <span class="text-[10px] text-on-surface-faint uppercase font-mono">Pending</span>
-          <span class="text-xl font-mono font-bold" style="color:#fbbf24">
+        <div>
+          <span class="metric-label">Pending</span>
+          <span class="metric-value metric-value--accent num">
             <%= consultations.filter(c => c.status === 'PENDING').length %>
           </span>
         </div>
       </div>
     </div>
 
-    <!-- Table Card -->
-    <div class="bg-surface rounded-card border border-outline overflow-hidden shadow-2xl">
-
-      <div class="px-4 sm:px-8 py-5 border-b border-outline flex flex-wrap justify-between items-center gap-4 bg-white/[0.01]">
-        <div class="flex flex-wrap items-center gap-3">
-          <div class="flex items-center gap-3">
-            <span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
-            <h3 class="font-headline text-xs font-bold tracking-[0.2em] uppercase text-on-surface">All Requests</h3>
-          </div>
-          <div class="flex flex-wrap gap-2">
-            <button onclick="filterByStatus('all')" id="filter-all"
-              class="filter-btn active px-3 py-1.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider border border-outline text-on-surface-faint transition-all">
-              All
-            </button>
-            <button onclick="filterByStatus('PENDING')" id="filter-PENDING"
-              class="filter-btn px-3 py-1.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider border border-outline text-on-surface-faint hover:border-primary/40 hover:text-primary transition-all">
-              Pending
-            </button>
-            <button onclick="filterByStatus('IN_PROGRESS')" id="filter-IN_PROGRESS"
-              class="filter-btn px-3 py-1.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider border border-outline text-on-surface-faint hover:border-primary/40 hover:text-primary transition-all">
-              In Progress
-            </button>
-            <button onclick="filterByStatus('RESOLVED')" id="filter-RESOLVED"
-              class="filter-btn px-3 py-1.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider border border-outline text-on-surface-faint hover:border-primary/40 hover:text-primary transition-all">
-              Resolved
-            </button>
-            <button onclick="filterByStatus('CANCELLED')" id="filter-CANCELLED"
-              class="filter-btn px-3 py-1.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider border border-outline text-on-surface-faint hover:border-primary/40 hover:text-primary transition-all">
-              Cancelled
-            </button>
-          </div>
+    <div class="card">
+      <div class="card-head">
+        <div class="flex flex-wrap items-center gap-2">
+          <button onclick="filterByStatus('all')"         id="filter-all"         class="pill active">All</button>
+          <button onclick="filterByStatus('PENDING')"     id="filter-PENDING"     class="pill">Pending</button>
+          <button onclick="filterByStatus('IN_PROGRESS')" id="filter-IN_PROGRESS" class="pill">In progress</button>
+          <button onclick="filterByStatus('RESOLVED')"    id="filter-RESOLVED"    class="pill">Resolved</button>
+          <button onclick="filterByStatus('CANCELLED')"   id="filter-CANCELLED"   class="pill">Cancelled</button>
         </div>
-        <input
-          id="search-input"
-          oninput="applyFilters()"
-          class="bg-black/40 border border-outline rounded-full pl-4 pr-4 py-1.5 text-xs text-on-surface focus:border-primary w-full sm:w-48 font-mono outline-none"
-          placeholder="Search by name..."
-          type="text"
-        />
+        <input id="search-input" oninput="applyFilters()" type="text" class="search" placeholder="Search by name" />
       </div>
 
-      <div class="overflow-x-auto scrollbar-hide">
-        <table class="w-full text-left border-collapse responsive-table">
+      <div class="tbl-wrap scrollbar-hide">
+        <table class="tbl">
           <thead>
-            <tr class="bg-black/20">
-              <th class="px-8 py-4 text-[11px] uppercase tracking-[0.08em] font-mono font-bold text-on-surface-faint">#</th>
-              <th class="px-4 py-4 text-[11px] uppercase tracking-[0.08em] font-mono font-bold text-on-surface-faint">Car</th>
-              <th class="px-4 py-4 text-[11px] uppercase tracking-[0.08em] font-mono font-bold text-on-surface-faint">Customer</th>
-              <th class="px-4 py-4 text-[11px] uppercase tracking-[0.08em] font-mono font-bold text-on-surface-faint">Channel</th>
-              <th class="px-4 py-4 text-[11px] uppercase tracking-[0.08em] font-mono font-bold text-on-surface-faint">Message</th>
-              <th class="px-4 py-4 text-[11px] uppercase tracking-[0.08em] font-mono font-bold text-on-surface-faint">Status</th>
-              <th class="px-4 py-4 text-[11px] uppercase tracking-[0.08em] font-mono font-bold text-on-surface-faint text-right">Date</th>
-              <th class="px-8 py-4 text-[11px] uppercase tracking-[0.08em] font-mono font-bold text-on-surface-faint text-right">Actions</th>
+            <tr>
+              <th class="t-idx">#</th>
+              <th>Car</th>
+              <th>Customer</th>
+              <th>Channel</th>
+              <th>Message</th>
+              <th>Status</th>
+              <th>Date</th>
+              <th class="t-right">Actions</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-outline" id="consultations-tbody">
+          <tbody id="consultations-tbody">
             <% consultations.map(function(c, i) { %>
-            <tr class="hover:bg-white/[0.03] transition-colors group consultation-row"
+            <tr class="consultation-row"
               data-name="<%= c.name?.toLowerCase() %>"
-              data-status="<%= c.status %>"
-            >
-              <td data-label="#" class="px-8 py-5 font-mono text-on-surface-faint text-xs"><%= String(i+1).padStart(2,'0') %></td>
-              <td data-label="Car" class="px-4 py-5">
+              data-status="<%= c.status %>">
+              <td data-label="#" class="t-idx num"><%= i + 1 %></td>
+              <td data-label="Car">
                 <div class="flex items-center gap-3">
-                  <div class="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 bg-white/5 border border-outline flex items-center justify-center text-lg">
+                  <div class="thumb w-10 h-10">
                     <% if (c.carId?.carImages?.length) { %>
-                      <img src="<%= imgUrl(c.carId.carImages[0]) %>" alt="<%= c.carId.carTitle || 'car' %>" class="w-full h-full object-cover" />
+                      <img src="<%= imgUrl(c.carId.carImages[0]) %>" alt="" />
                     <% } else { %>
-                      🚗
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M5 17H3v-5l2-5h14l2 5v5h-2"/><circle cx="7.5" cy="17" r="2"/><circle cx="16.5" cy="17" r="2"/></svg>
                     <% } %>
                   </div>
-                  <div class="font-bold text-sm text-on-surface truncate max-w-[160px]">
-                    <%= c.carId?.carTitle || '—' %>
-                  </div>
+                  <div class="t-primary truncate max-w-[160px]"><%= c.carId?.carTitle || '—' %></div>
                 </div>
               </td>
-              <td data-label="Customer" class="px-4 py-5">
-                <div class="font-bold text-sm text-on-surface"><%= c.name %></div>
-                <div class="text-xs text-on-surface-faint mt-0.5"><%= c.phone %></div>
+              <td data-label="Customer">
+                <div class="t-primary"><%= c.name %></div>
+                <div class="t-secondary num"><%= c.phone %></div>
               </td>
-              <td data-label="Channel" class="px-4 py-5">
-                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase
-                  <%= c.preferredContact === 'TELEGRAM' ? 'channel-telegram' :
-                      c.preferredContact === 'WHATSAPP' ? 'channel-whatsapp' :
-                      c.preferredContact === 'CALL'     ? 'channel-phone' : 'channel-email' %>">
-                  <span class="w-1.5 h-1.5 rounded-full bg-current"></span>
-                  <%= c.preferredContact %>
+              <td data-label="Channel">
+                <span class="tag <%= c.preferredContact === 'TELEGRAM' ? 'tag-blue' :
+                                     c.preferredContact === 'WHATSAPP' ? 'tag-green' :
+                                     c.preferredContact === 'CALL'     ? 'tag-green' : 'tag-amber' %>">
+                  <span class="dot"></span>
+                  <%= c.preferredContact ? c.preferredContact.charAt(0) + c.preferredContact.slice(1).toLowerCase() : '—' %>
                 </span>
               </td>
-              <td data-label="Message" class="px-4 py-5">
-                <p class="text-xs text-on-surface-secondary max-w-[200px] truncate"><%= c.message || '—' %></p>
+              <td data-label="Message">
+                <p class="truncate max-w-[220px]" style="font-size:13px; color:rgb(var(--text-muted))"><%= c.message || '—' %></p>
               </td>
-              <td data-label="Status" class="px-4 py-5">
-                <select
-                  id="<%= c._id %>"
-                  onchange="updateStatus(this)"
-                  class="border-none text-[10px] font-bold uppercase px-3 py-1.5 rounded-lg cursor-pointer outline-none
-                    <%= c.status === 'PENDING'     ? 'status-pending'    :
-                        c.status === 'IN_PROGRESS' ? 'status-inprogress' :
-                        c.status === 'RESOLVED'    ? 'status-resolved'   : 'status-cancelled' %>"
-                >
+              <td data-label="Status">
+                <select id="<%= c._id %>" onchange="updateStatus(this)"
+                  class="status-select <%= c.status === 'PENDING'     ? 's-amber' :
+                                           c.status === 'IN_PROGRESS' ? 's-blue'  :
+                                           c.status === 'RESOLVED'    ? 's-green' : 's-red' %>">
                   <option value="PENDING"     <%= c.status === 'PENDING'     ? 'selected' : '' %>>Pending</option>
-                  <option value="IN_PROGRESS" <%= c.status === 'IN_PROGRESS' ? 'selected' : '' %>>In Progress</option>
+                  <option value="IN_PROGRESS" <%= c.status === 'IN_PROGRESS' ? 'selected' : '' %>>In progress</option>
                   <option value="RESOLVED"    <%= c.status === 'RESOLVED'    ? 'selected' : '' %>>Resolved</option>
                   <option value="CANCELLED"   <%= c.status === 'CANCELLED'   ? 'selected' : '' %>>Cancelled</option>
                 </select>
               </td>
-              <td data-label="Date" class="px-4 py-5 text-right text-sm text-on-surface-secondary">
-                <%= new Date(c.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) %>
+              <td data-label="Date" style="color:rgb(var(--text-muted)); font-size:13px">
+                <%= new Date(c.createdAt).toLocaleDateString('en-GB', { year: 'numeric', month: 'short', day: 'numeric' }) %>
               </td>
-              <td data-label="Actions" class="px-8 py-5 text-right">
-                <button onclick="deleteConsultation('<%= c._id %>')"
-                  class="p-2 rounded hover:bg-white/10 text-on-surface-secondary hover:text-danger transition-colors" title="Delete">
-                  🗑
-                </button>
+              <td data-label="Actions" class="t-right">
+                <div class="row-actions">
+                  <button onclick="deleteConsultation('<%= c._id %>')" class="icon-btn is-danger" title="Delete" aria-label="Delete">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>
+                  </button>
+                </div>
               </td>
             </tr>
             <% }) %>
             <% if(consultations.length === 0) { %>
-            <tr>
-              <td colspan="8" class="px-8 py-16 text-center text-on-surface-faint font-mono text-xs uppercase tracking-widest">
-                No consultation requests yet.
-              </td>
-            </tr>
+            <tr><td colspan="8" class="t-empty">No consultation requests yet.</td></tr>
             <% } %>
           </tbody>
         </table>
       </div>
 
-      <div class="px-8 py-5 bg-white/[0.01] border-t border-outline flex justify-between items-center">
-        <span class="text-[10px] uppercase tracking-widest font-mono font-bold text-on-surface-faint">
-          <%= consultations.length %> Total Requests
-        </span>
-      </div>
+      <div class="card-foot"><span><%= consultations.length %> total</span></div>
     </div>
 
   </div>
 </main>
-
 
 <script>
 let activeStatus = 'all';
 
 function filterByStatus(status) {
     activeStatus = status;
-    document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.pill').forEach(btn => btn.classList.remove('active'));
     document.getElementById('filter-' + status)?.classList.add('active');
     applyFilters();
 }
@@ -266,18 +150,20 @@ function deleteConsultation(id) {
 function updateStatus(select) {
     const id     = select.id;
     const status = select.value;
-    select.className = select.className.replace(/status-\w+/g, '');
-    const cls = status === 'PENDING'     ? 'status-pending'    :
-                status === 'IN_PROGRESS' ? 'status-inprogress' :
-                status === 'RESOLVED'    ? 'status-resolved'   : 'status-cancelled';
-    select.classList.add(cls);
+
+    select.classList.remove('s-amber', 's-blue', 's-green', 's-red');
+    select.classList.add(
+        status === 'PENDING'     ? 's-amber' :
+        status === 'IN_PROGRESS' ? 's-blue'  :
+        status === 'RESOLVED'    ? 's-green' : 's-red'
+    );
     select.closest('tr').dataset.status = status;
+
     fetch(`/admin/consultation/${id}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status }),
     })
-    .then(() => console.log('Status updated'))
     .catch(() => alert('Failed to update status'));
 }
 </script>

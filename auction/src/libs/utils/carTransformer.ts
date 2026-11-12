@@ -21,7 +21,6 @@ export const toClientCar = (car: any) => {
         salePrice: c.salePrice,
         saleDate: c.saleDate,
         brand: c.carBrand,
-        make: c.carMake,
         model: c.carModel,
         type: c.carType,
         condition: c.carCondition,

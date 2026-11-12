@@ -5,21 +5,22 @@ export enum CarStatus {
     DELETE = 'DELETE',
 }
 
-export enum CarBrand {
-    HYUNDAI = 'HYUNDAI',
-    KIA = 'KIA',
-    GENESIS = 'GENESIS',
-    SAMSUNG = 'SAMSUNG',
-    CHEVROLET = 'CHEVROLET',
-    SSANGYONG = 'SSANGYONG',
-    BMW = 'BMW',
-    MERCEDES = 'MERCEDES',
-    AUDI = 'AUDI',
-    TOYOTA = 'TOYOTA',
-    HONDA = 'HONDA',
-    TESLA = "TESLA",
-    OTHER = 'OTHER',
-}
+// Brands are free text: the admin types whatever the car actually is, so no enum
+// can stay complete. These values are only the datalist suggestions in the form.
+export const CAR_BRAND_SUGGESTIONS = [
+    'HYUNDAI',
+    'KIA',
+    'GENESIS',
+    'SAMSUNG',
+    'CHEVROLET',
+    'SSANGYONG',
+    'BMW',
+    'MERCEDES',
+    'AUDI',
+    'TOYOTA',
+    'HONDA',
+    'TESLA',
+];
 
 export enum CarType {
     SEDAN = 'SEDAN',
@@ -54,12 +55,12 @@ export enum CarTransmission {
     DCT = 'DCT',
 }
 
-export enum CarColor {
-    WHITE = 'WHITE',
-    BLACK = 'BLACK',
-    SILVER = 'SILVER',
-    GRAY = 'GRAY',
-    RED = 'RED',
-    BLUE = 'BLUE',
-    OTHER = 'OTHER',
-}
+// Colors are free text too — same rationale as CAR_BRAND_SUGGESTIONS.
+export const CAR_COLOR_SUGGESTIONS = [
+    'WHITE',
+    'BLACK',
+    'SILVER',
+    'GRAY',
+    'RED',
+    'BLUE',
+];
