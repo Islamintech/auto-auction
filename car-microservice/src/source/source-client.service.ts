@@ -49,29 +49,14 @@ export class SourceClientService {
   }
 
   /**
-   * Cookie-session login: GET csrf, then POST credentials with the token in
-   * X-CSRF-Token. Starts from an empty jar so a stale session cannot leak in.
+   * Cookie-session login, sent exactly as ckauto.co.kr's own frontend sends it:
+   * POST {loginId, password} as JSON, no CSRF token. (The site's client only
+   * attaches X-CSRF-Token to other write requests; login is not one of them.)
+   * Starts from an empty jar so a stale session cannot leak in.
    */
   async login(): Promise<void> {
     this.jar = new CookieJar();
     this.authedAt = undefined;
-
-    const csrfUrl = new URL(this.path('SOURCE_CSRF_PATH', '/api/auth/csrf'), this.baseUrl).toString();
-    const csrfRes = await request(csrfUrl, { headers: { accept: 'application/json' } });
-    await this.storeCookies(csrfUrl, csrfRes.headers['set-cookie']);
-    const csrfBody = (await csrfRes.body.json().catch(() => ({}))) as Record<string, any>;
-    if (csrfRes.statusCode >= 400) throw new Error(`CSRF request failed with status ${csrfRes.statusCode}`);
-
-    // The token's key is not in the capture; accept the usual spellings, and
-    // the double-submit cookie pattern as a fallback. Fail loudly otherwise.
-    const cookies = await this.jar.getCookies(csrfUrl);
-    const csrf: string | undefined =
-      csrfBody.csrfToken ?? csrfBody.token ?? csrfBody.csrf ?? csrfBody.data?.csrfToken ??
-      cookies.find((c) => /csrf|xsrf/i.test(c.key))?.value;
-    if (!csrf) {
-      throw new Error(`No CSRF token in ${csrfUrl}. Body keys: ${Object.keys(csrfBody).join(', ') || '(none)'}`);
-    }
-    await sleep(this.delayMs);
 
     const loginUrl = new URL(this.path('SOURCE_LOGIN_PATH', '/api/auth/login'), this.baseUrl).toString();
     const res = await request(loginUrl, {
@@ -79,8 +64,6 @@ export class SourceClientService {
       headers: {
         'content-type': 'application/json',
         accept: 'application/json',
-        'x-csrf-token': csrf,
-        ...(await this.cookieHeader(loginUrl)),
       },
       body: JSON.stringify({
         loginId: this.config.getOrThrow<string>('SOURCE_USERNAME'),
@@ -91,9 +74,11 @@ export class SourceClientService {
     const body = (await res.body.json().catch(() => ({}))) as Record<string, any>;
     await sleep(this.delayMs);
 
-    // Never log the body: on some sites it echoes the login id.
+    // Only the site's own error text is reported - never the request body, which
+    // holds the credentials.
     if (res.statusCode >= 400 || body.ok === false) {
-      throw new Error(`Login failed with status ${res.statusCode}`);
+      const reason = typeof body.message === 'string' ? `: ${body.message.slice(0, 200)}` : '';
+      throw new Error(`Login failed with status ${res.statusCode}${reason}`);
     }
     if (!(await this.jar.getCookieString(loginUrl))) {
       throw new Error('Login returned no session cookie');

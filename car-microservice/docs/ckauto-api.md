@@ -30,10 +30,14 @@ filtering or `?page=` support** on `/api/app/state`. Everything is in the single
 
 Cookie session, not a bearer token:
 
-1. `GET /api/auth/csrf`
-2. `POST /api/auth/login` with `credentials: 'include'` and the CSRF value in an
-   `X-CSRF-Token` header. Body keys in the bundle are `loginId` + password field.
-3. Session cookie persists; `GET /api/auth/me` validates it.
+1. `POST /api/auth/login` with JSON `{ loginId, password }` and
+   `credentials: 'include'`. **No CSRF token** - verified 2026-11-12 in the
+   site's bundle (`RootContainer-*.js`): its login function sends only
+   `Content-Type`. A wrong login answers 401 with
+   `{"message":"아이디 또는 비밀번호가 일치하지 않습니다."}`.
+2. Session cookie persists; `GET /api/auth/me` validates it.
+3. `GET /api/auth/csrf` returns `{ csrfToken }`. The site attaches it as
+   `X-CSRF-Token` to *other* write requests (bids etc.), which we never make.
 
 In NestJS use a cookie jar (`tough-cookie` + `axios-cookiejar-support`, or `fetch` with
 a manual `Cookie` header), refresh CSRF per login, and re-login on a 401.
