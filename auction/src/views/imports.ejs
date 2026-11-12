@@ -1,0 +1,215 @@
+<%- include('includes/header') %>
+<%- include('includes/nav', { page: 'imports' }) %>
+
+<body>
+<main>
+  <div class="page">
+
+    <div class="page-head">
+      <div>
+        <h1 class="page-title">Imports</h1>
+        <p class="page-sub">CKAuto lots waiting for review. Approving one lists it in the catalogue.</p>
+      </div>
+      <div class="metrics">
+        <div>
+          <span class="metric-label">In this view</span>
+          <span id="metric-total" class="metric-value metric-value--accent num">–</span>
+        </div>
+        <button id="run-now" type="button" class="btn btn-ghost" onclick="runNow()" <%= configured ? '' : 'disabled' %>>
+          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg>
+          Fetch now
+        </button>
+      </div>
+    </div>
+
+    <% if (!configured) { %>
+      <div class="card card-body" style="border-color: rgb(var(--red) / .35)">
+        <p class="t-primary">The import service is not connected.</p>
+        <p class="t-secondary">Set <code>INGEST_API_URL</code> and <code>INGEST_ADMIN_TOKEN</code> in this server's environment. The token is car-microservice's <code>ADMIN_API_TOKEN</code>.</p>
+      </div>
+    <% } else { %>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="flex flex-wrap items-center gap-2" role="tablist">
+          <button class="pill active" data-status="pending"  onclick="setStatus('pending')">Pending</button>
+          <button class="pill"        data-status="approved" onclick="setStatus('approved')">Approved</button>
+          <button class="pill"        data-status="rejected" onclick="setStatus('rejected')">Rejected</button>
+          <button class="pill"        data-status="failed"   onclick="setStatus('failed')">Failed</button>
+        </div>
+      </div>
+
+      <div class="tbl-wrap scrollbar-hide">
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th>Vehicle</th>
+              <th>Lot</th>
+              <th>Damage</th>
+              <th class="t-right">Mileage</th>
+              <th>Auction ends</th>
+              <th>Photos</th>
+              <th class="t-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="imports-tbody">
+            <tr><td colspan="7" class="t-empty">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card-foot">
+        <span id="page-info"></span>
+        <div class="flex gap-2">
+          <button id="prev-page" class="btn btn-ghost btn-sm" onclick="changePage(-1)" disabled>Previous</button>
+          <button id="next-page" class="btn btn-ghost btn-sm" onclick="changePage(1)" disabled>Next</button>
+        </div>
+      </div>
+    </div>
+    <% } %>
+
+  </div>
+</main>
+
+<!-- Review modal -->
+<div id="review-modal" class="modal" hidden>
+  <div class="modal-scrim" onclick="closeReview()"></div>
+  <div class="modal-panel" style="max-width: 980px" role="dialog" aria-modal="true" aria-labelledby="review-title">
+    <div class="modal-head">
+      <div>
+        <h2 id="review-title" class="card-title"></h2>
+        <p id="review-sub" class="t-secondary"></p>
+      </div>
+      <button type="button" class="icon-btn" onclick="closeReview()" aria-label="Close">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <div id="review-alerts" class="stack" style="margin-bottom: 16px"></div>
+
+      <div class="grid gap-6 md:grid-cols-2">
+        <!-- Left: what CKAuto says -->
+        <div>
+          <div class="thumb" style="aspect-ratio: 4 / 3; width: 100%">
+            <img id="photo-main" alt="" hidden />
+            <span id="photo-none" class="hint">No photos</span>
+          </div>
+          <div id="photo-strip" class="flex gap-2 overflow-x-auto scrollbar-hide" style="margin-top: 8px"></div>
+
+          <dl id="source-facts" class="facts" style="margin-top: 16px"></dl>
+          <div id="source-notes" class="hint" style="margin-top: 12px; white-space: pre-wrap"></div>
+        </div>
+
+        <!-- Right: what the catalogue will get -->
+        <form id="review-form" onsubmit="approve(event)" class="flex flex-col gap-4">
+          <div class="field">
+            <label for="f-carTitle">Catalogue title</label>
+            <input id="f-carTitle" name="carTitle" class="input" required />
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div class="field">
+              <label for="f-priceKrw">Price (KRW) <span class="label-hint">· required</span></label>
+              <input id="f-priceKrw" name="priceKrw" class="input input-mono" inputmode="numeric" placeholder="e.g. 15,500,000" required />
+            </div>
+            <div class="field">
+              <label for="f-mileageKm">Mileage (km)</label>
+              <input id="f-mileageKm" name="mileageKm" class="input input-mono" inputmode="numeric" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div class="field">
+              <label for="f-make">Brand</label>
+              <input id="f-make" name="make" class="input" />
+            </div>
+            <div class="field">
+              <label for="f-model">Model</label>
+              <input id="f-model" name="model" class="input" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-3 gap-3">
+            <div class="field">
+              <label for="f-year">Year</label>
+              <input id="f-year" name="year" class="input input-mono" inputmode="numeric" />
+            </div>
+            <div class="field">
+              <label for="f-fuelType">Fuel</label>
+              <select id="f-fuelType" name="fuelType" class="select">
+                <option value="">—</option>
+                <% carFuels.forEach(function (v) { %><option value="<%= v %>"><%= v %></option><% }) %>
+              </select>
+            </div>
+            <div class="field">
+              <label for="f-transmission">Gearbox</label>
+              <select id="f-transmission" name="transmission" class="select">
+                <option value="">—</option>
+                <% carTransmissions.forEach(function (v) { %><option value="<%= v %>"><%= v %></option><% }) %>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div class="field">
+              <label for="f-carType">Body type</label>
+              <select id="f-carType" name="carType" class="select">
+                <% carTypes.forEach(function (v) { %><option value="<%= v %>"><%= v %></option><% }) %>
+              </select>
+            </div>
+            <div class="field">
+              <label for="f-carCondition">Condition</label>
+              <select id="f-carCondition" name="carCondition" class="select">
+                <% carConditions.forEach(function (v) { %><option value="<%= v %>"><%= v %></option><% }) %>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div class="field">
+              <label for="f-color">Color</label>
+              <input id="f-color" name="color" class="input" list="color-suggestions" />
+              <datalist id="color-suggestions">
+                <option value="WHITE"></option><option value="BLACK"></option><option value="SILVER"></option>
+                <option value="GRAY"></option><option value="RED"></option><option value="BLUE"></option>
+              </datalist>
+            </div>
+            <div class="field">
+              <label for="f-plateOrVin">VIN <span class="label-hint">· 17 chars</span></label>
+              <input id="f-plateOrVin" name="plateOrVin" class="input input-mono" maxlength="17" />
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="f-carDesc">Description</label>
+            <textarea id="f-carDesc" name="carDesc" class="textarea" rows="3"></textarea>
+          </div>
+
+          <div id="review-actions" class="form-actions">
+            <button type="button" id="btn-reject" class="btn btn-danger" onclick="reject()">Reject</button>
+            <button type="submit" id="btn-approve" class="btn btn-success">Approve &amp; publish</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .facts { display: grid; grid-template-columns: auto 1fr; gap: 6px 16px; font-size: 13px; }
+  .facts dt { color: rgb(var(--text-faint)); }
+  .facts dd { margin: 0; color: rgb(var(--text)); min-width: 0; overflow-wrap: anywhere; }
+  .strip-thumb { width: 64px; height: 48px; flex-shrink: 0; cursor: pointer; border: 2px solid transparent; padding: 0; }
+  .strip-thumb.active { border-color: rgb(var(--accent)); }
+  .alert { padding: 10px 14px; border-radius: 9px; font-size: 13px; }
+  .alert-red   { background: rgb(var(--red-weak));   color: rgb(var(--red)); }
+  .alert-amber { background: rgb(var(--amber-weak)); color: rgb(var(--amber)); }
+  .alert-green { background: rgb(var(--green-weak)); color: rgb(var(--green)); }
+  .alert ul { margin: 4px 0 0; padding-left: 18px; }
+</style>
+
+<script src="/js/imports.js"></script>
+<% if (configured) { %><script>loadList();</script><% } %>
+</body>
+<%- include('includes/footer') %>
