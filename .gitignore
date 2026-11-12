@@ -1,0 +1,11 @@
+# Each app keeps its own .gitignore; these apply across the whole repo.
+node_modules/
+.env
+.env.*
+!.env.example
+.DS_Store
+
+# Local Claude Code / editor settings
+.claude/settings.local.json
+.vscode/
+.idea/
