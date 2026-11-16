@@ -77,9 +77,8 @@ function parseImport(body: T): { input?: CarInput; problems: string[] } {
     const carYear = need('carYear', str(body.carYear)) as string;
     const carPrice = need('carPrice', str(body.carPrice)) as string;
 
-    const carMileage = Number(body.carMileage);
-    if (body.carMileage === undefined || body.carMileage === '' || !Number.isFinite(carMileage) || carMileage < 0)
-        problems.push('carMileage must be a non-negative number');
+    // Free text: the ingestion service sends a km number, admins may type ranges.
+    const carMileage = need('carMileage', str(body.carMileage)) as string;
 
     if (carPrice !== undefined && !/^\d+$/.test(carPrice))
         problems.push('carPrice must be whole KRW digits');

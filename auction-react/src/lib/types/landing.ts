@@ -19,7 +19,8 @@ export interface AuctionCar {
   comments?: CarComment[];
   category: CarCategory;
   year: number;
-  km: number;
+  /** Free text: a km number, or a range/note such as "2000~3000". */
+  km: string | number;
   /** Admin-entered KRW amount; a string that may be a range ("30,000,000-35,000,000"). */
   price: string | number;
   color: string;

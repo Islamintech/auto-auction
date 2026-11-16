@@ -28,7 +28,8 @@ export const toClientCar = (car: any) => {
         fuel: c.carFuel,
         trans: c.carTransmission,
         year: c.carYear,
-        km: c.carMileage,
+        // Older cars stored mileage as a number; send every value as a string.
+        km: c.carMileage == null ? c.carMileage : String(c.carMileage),
         price: c.carPrice,
         priceCurrency: 'KRW',
         color: c.carColor,

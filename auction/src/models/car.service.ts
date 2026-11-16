@@ -277,12 +277,15 @@ class CarService {
 
         // Numeric/text coercion — the admin panel posts everything as strings.
         if (set.carPrice !== undefined) set.carPrice = String(set.carPrice).trim();
-        if (set.carMileage !== undefined) set.carMileage = Number(set.carMileage);
+        if (set.carMileage !== undefined) {
+            set.carMileage = String(set.carMileage).trim();
+            if (!set.carMileage) throw new Errors(HttpCode.BAD_REQUEST, Message.UPDATED_FAILED);
+        }
         if (set.salePrice !== undefined && set.salePrice !== '')
             set.salePrice = Number(set.salePrice);
         if (set.saleDate) set.saleDate = new Date(set.saleDate);
 
-        if (Number.isNaN(set.carMileage) || Number.isNaN(set.salePrice))
+        if (Number.isNaN(set.salePrice))
             throw new Errors(HttpCode.BAD_REQUEST, Message.UPDATED_FAILED);
 
         const update: T = { $set: set };

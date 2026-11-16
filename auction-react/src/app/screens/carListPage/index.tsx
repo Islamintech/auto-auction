@@ -15,7 +15,7 @@ import CarService from "../../services/CarService";
 import { imageUrl } from "../../../lib/api";
 import { formatKrw, formatUsdEstimate, krwValue, useUsdKrwRate } from "../../../lib/currency";
 import "../../../css/carList.css";
-import { formatNumber } from "../../../lib/locale";
+import { formatMileage, mileageValue } from "../../../lib/locale";
 
 type View = "grid" | "list";
 type Density = "spacious" | "compact";
@@ -91,7 +91,7 @@ export default function CarListPage() {
     switch (filters.sort) {
       case "price-l": sorted.sort((a, b) => krwValue(a.price) - krwValue(b.price)); break;
       case "price-h": sorted.sort((a, b) => krwValue(b.price) - krwValue(a.price)); break;
-      case "km":     sorted.sort((a, b) => (a.km ?? 0) - (b.km ?? 0)); break;
+      case "km":     sorted.sort((a, b) => mileageValue(a.km) - mileageValue(b.km)); break;
       case "year":   sorted.sort((a, b) => b.year - a.year); break;
       default: break;
     }
@@ -264,7 +264,7 @@ export default function CarListPage() {
                       <div className="cl-list__model">{c.brand} {c.title}</div>
                     </div>
                     <span className="cl-list__num">{c.year}</span>
-                    <span className="cl-list__num cl-list__num--mute">{c.km != null ? formatNumber(c.km) : "—"}</span>
+                    <span className="cl-list__num cl-list__num--mute">{formatMileage(c.km)}</span>
                     <span className="cl-list__num cl-list__num--mute">{c.color || "—"}</span>
                     <span className="cl-list__price">
                       {formatKrw(c.price)}

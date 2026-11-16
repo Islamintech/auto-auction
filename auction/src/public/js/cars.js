@@ -338,7 +338,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ].forEach((name) => {
             const value = editForm.elements[name]?.value;
             if (optionalFields.includes(name) && value === '') return;
-            payload[name] = name === 'carMileage' ? Number(value) : value;
+            payload[name] = value;
         });
 
         // Sale details ride along only while the car stays Sold; switching to any

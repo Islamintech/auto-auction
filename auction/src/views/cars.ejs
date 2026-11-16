@@ -97,8 +97,8 @@
 
                 <div class="field">
                   <label for="new-mileage">Mileage (km) *</label>
-                  <input id="new-mileage" name="carMileage" type="number" required min="0"
-                         class="input input-mono" placeholder="0" />
+                  <input id="new-mileage" name="carMileage" type="text" required
+                         class="input input-mono" placeholder="35000 or 2000~3000" />
                 </div>
 
                 <div class="field">
@@ -221,7 +221,7 @@
                   <div style="font-size:13.5px">
                     <span class="num"><%= car.carYear %></span>
                     <span style="color:rgb(var(--text-faint))">·</span>
-                    <span class="num"><%= car.carMileage === 0 ? 'New' : car.carMileage?.toLocaleString() + ' km' %></span>
+                    <span class="num"><% const km = String(car.carMileage ?? '').trim(); %><%= km === '0' ? 'New' : /^\d+$/.test(km) ? Number(km).toLocaleString() + ' km' : (km || '—') %></span>
                   </div>
                   <div class="t-secondary">
                     <%= car.carType ? car.carType.charAt(0) + car.carType.slice(1).toLowerCase() : '—' %>
@@ -399,7 +399,7 @@
 
         <div class="field">
           <label>Mileage (km) *</label>
-          <input name="carMileage" type="number" required min="0" class="input input-mono" />
+          <input name="carMileage" type="text" required class="input input-mono" placeholder="35000 or 2000~3000" />
         </div>
 
         <div class="field">

@@ -1,7 +1,7 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { AuctionCar } from "../../../lib/types/landing";
-import { formatNumber } from "../../../lib/locale";
+import { formatMileage } from "../../../lib/locale";
 
 export type TabKey = "specs";
 
@@ -13,7 +13,7 @@ export default function TabContent({ tab, car }: { tab: TabKey; car: AuctionCar 
     const rows: [string, string | number][] = [
       [t("cardetail.rowBrand"), car.brand],
       [t("cardetail.rowYear"), car.year],
-      [t("cardetail.rowMileage"), `${formatNumber(car.km ?? 0)} km`],
+      [t("cardetail.rowMileage"), formatMileage(car.km, "km")],
       [t("cardetail.rowColor"), car.color || t("cardetail.dash")],
       [t("cardetail.rowStatus"), car.status],
       [t("cardetail.rowBodyType"), isCrashed ? t("cardetail.bodyDamaged") : t("cardetail.dash")],

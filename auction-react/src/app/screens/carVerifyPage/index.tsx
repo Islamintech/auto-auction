@@ -7,7 +7,7 @@ import { imageUrl } from "../../../lib/api";
 import { formatKrw, formatUsdEstimate, parseKrw, useUsdKrwRate } from "../../../lib/currency";
 import Lightbox from "./Lightbox";
 import "../../../css/carVerify.css";
-import { formatDate, formatNumber } from "../../../lib/locale";
+import { formatDate, formatMileage } from "../../../lib/locale";
 
 type Status = "idle" | "loading" | "found" | "empty" | "error";
 
@@ -247,7 +247,7 @@ export default function CarVerifyPage() {
                 <Spec label={t("verify.year")} value={car.year} />
                 <Spec
                   label={t("verify.mileage")}
-                  value={car.km != null ? `${formatNumber(car.km)} km` : "—"}
+                  value={formatMileage(car.km, "km")}
                 />
                 <Spec label={t("verify.color")} value={car.color} />
                 <Spec

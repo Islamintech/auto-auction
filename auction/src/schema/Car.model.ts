@@ -76,9 +76,12 @@ const carSchema = new Schema(
             trim: true,
         },
 
+        // Free text: usually a number of km, but the admin can enter things like
+        // "2000~3000" or "unknown" when the odometer reading is not known.
         carMileage: {
-            type: Number,
+            type: String,
             required: true,
+            trim: true,
         },
 
         carPrice: {

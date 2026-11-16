@@ -16,7 +16,7 @@ export interface Car {
     carFuel?: CarFuel;
     carTransmission?: CarTransmission;
     carYear: string;
-    carMileage: number;
+    carMileage: string;
     carPrice: string;
     carColor?: string;
     carDesc?: string;
@@ -42,7 +42,7 @@ export interface CarInput {
     carFuel?: CarFuel;
     carTransmission?: CarTransmission;
     carYear: string;
-    carMileage: number;
+    carMileage: string;
     carPrice: string;
     carColor?: string;
     carDesc?: string;
@@ -66,7 +66,7 @@ export interface CarUpdateInput {
     carFuel?: CarFuel;
     carTransmission?: CarTransmission;
     carYear?: string;
-    carMileage?: number;
+    carMileage?: string;
     carPrice?: string;
     carColor?: string;
     carDesc?: string;
