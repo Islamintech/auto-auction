@@ -5,8 +5,8 @@ import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  // On SIGTERM (every redeploy), let the queue worker close cleanly so a run
-  // in progress is handed back to Redis rather than left marked active.
+  // On SIGTERM (every redeploy), stop the bot's long poll cleanly, so the new
+  // instance does not collide with it (Telegram allows one poller per bot).
   app.enableShutdownHooks();
   const port = process.env.PORT ?? 3100;
   await app.listen(port);

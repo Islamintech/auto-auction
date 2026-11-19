@@ -14,7 +14,6 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Vehicle, VehicleDocument, VehicleStatus } from '../schemas/vehicle.schema';
-import { IngestionScheduler } from '../ingestion/ingestion.scheduler';
 import { AdminTokenGuard } from '../auth/admin-token.guard';
 import {
   CatalogueOverrides,
@@ -32,7 +31,8 @@ type ApproveBody = Partial<Record<(typeof EDITABLE_TEXT)[number], string>> &
   CatalogueOverrides;
 
 /**
- * Thin API for the admin panel. Review happens in the panel, not in Telegram.
+ * Thin API for the admin panel's Imports page: lists what the Telegram bot
+ * fetched, and lets an admin approve or reject from the panel too.
  * Every route requires the ADMIN_API_TOKEN bearer token.
  */
 @UseGuards(AdminTokenGuard)
@@ -40,7 +40,6 @@ type ApproveBody = Partial<Record<(typeof EDITABLE_TEXT)[number], string>> &
 export class AdminController {
   constructor(
     @InjectModel(Vehicle.name) private readonly vehicleModel: Model<VehicleDocument>,
-    private readonly scheduler: IngestionScheduler,
     private readonly catalogue: CatalogueService,
   ) {}
 
@@ -60,13 +59,6 @@ export class AdminController {
       this.vehicleModel.countDocuments({ status }),
     ]);
     return { items, total, page: p, limit: l };
-  }
-
-  // Declared before ':sourceId' routes so "run-now" is never read as an id.
-  @Post('run-now')
-  async runNow() {
-    await this.scheduler.triggerNow();
-    return { ok: true, queued: true };
   }
 
   @Get(':sourceId')

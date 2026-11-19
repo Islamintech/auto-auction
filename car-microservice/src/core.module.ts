@@ -7,16 +7,14 @@ import { RawListing, RawListingSchema } from './schemas/raw-listing.schema';
 import { Vehicle, VehicleSchema } from './schemas/vehicle.schema';
 import { SourceClientService } from './source/source-client.service';
 import { ImageService } from './images/image.service';
-import { TelegramService } from './notify/telegram.service';
 import { IngestionService } from './ingestion/ingestion.service';
 import { CatalogueService } from './catalogue/catalogue.service';
 
-const PROVIDERS = [SourceClientService, ImageService, TelegramService, IngestionService, CatalogueService];
+const PROVIDERS = [SourceClientService, ImageService, IngestionService, CatalogueService];
 
 /**
- * Everything an ingestion run needs: config, MongoDB and the pipeline services.
- * No Redis. The long-running service (AppModule) adds the queue, scheduler and
- * admin API on top; the one-off script (npm run ingest:once) uses this alone.
+ * Everything an import needs: config, MongoDB and the pipeline services. The
+ * long-running service (AppModule) adds the Telegram bot and admin API on top.
  */
 @Module({})
 export class CoreModule {

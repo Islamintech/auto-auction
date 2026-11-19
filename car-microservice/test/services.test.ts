@@ -1,9 +1,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { ConfigService } from '@nestjs/config';
-import { CatalogueService } from '../src/catalogue/catalogue.service';
+import { CatalogueService, usdToKrwPrice } from '../src/catalogue/catalogue.service';
 import { ImageService } from '../src/images/image.service';
-import { TelegramService } from '../src/notify/telegram.service';
+import { escapeHtml } from '../src/bot/caption';
 import { validateEnv } from '../src/config/env.validation';
 
 const catalogue = new CatalogueService(new ConfigService({}));
@@ -25,7 +25,7 @@ test('catalogue payload from a CKAuto vehicle', () => {
   assert.equal(p.importSource, 'ckauto');
   assert.equal(p.importId, 'CK1');
   assert.equal(p.carBrand, 'SSANGYONG');
-  assert.equal(p.carTitle, '2017 SSANGYONG 코란도 2.2 디젤');
+  assert.equal(p.carTitle, 'KGM Korando 2.2 Diesel');
   assert.equal(p.carCondition, 'DAMAGED');
   assert.equal(p.carFuel, 'DIESEL');
   assert.equal(p.carTransmission, 'AUTO');
@@ -54,6 +54,12 @@ test('admin overrides win; VIN only when it is one', () => {
   assert.equal(catalogue.toCatalogueInput(vehicle({ plateOrVin: 'knagt41bbn5123456' })).carVin, 'KNAGT41BBN5123456');
 });
 
+test('no odometer reading does not block publishing', () => {
+  const p = catalogue.toCatalogueInput(vehicle({ mileageKm: undefined }));
+  assert.equal(p.carMileage, '—');
+  assert.deepEqual(catalogue.missingFields(p), []);
+});
+
 test('missing price and photos block approval', () => {
   const p = catalogue.toCatalogueInput(vehicle({ priceKrw: undefined, images: [] }));
   assert.deepEqual(catalogue.missingFields(p), ['priceKrw', 'images (none uploaded to Cloudinary)']);
@@ -68,17 +74,26 @@ test('Cloudinary names come from the photo URL, not its position', () => {
 });
 
 test('telegram escaping', () => {
-  assert.equal(TelegramService.escape('<b>"A&B"</b>'), '&lt;b&gt;&quot;A&amp;B&quot;&lt;/b&gt;');
+  assert.equal(escapeHtml('<b>"A&B"</b>'), '&lt;b&gt;&quot;A&amp;B&quot;&lt;/b&gt;');
+});
+
+test('a USD range from the bot becomes a KRW range on the site', () => {
+  assert.equal(usdToKrwPrice({ min: 30000, max: 38000 }, 1385.27), '41560000-52640000');
+  assert.equal(usdToKrwPrice({ min: 30000 }, 1385.27), '41560000');
+  const p = catalogue.toCatalogueInput(vehicle({ priceKrwRange: '41560000-52640000' }));
+  assert.equal(p.carPrice, '41560000-52640000');
+  assert.equal(catalogue.toCatalogueInput(vehicle({ color: 'qora' })).carColor, 'BLACK');
 });
 
 test('startup config check lists every missing setting', () => {
   assert.throws(() => validateEnv({}, { service: true }), (e: Error) =>
-    ['MONGODB_URI', 'SOURCE_USERNAME', 'CLOUDINARY_API_SECRET', 'REDIS_URL'].every((k) => e.message.includes(k)));
+    ['MONGODB_URI', 'SOURCE_USERNAME', 'CLOUDINARY_API_SECRET', 'TELEGRAM_BOT_TOKEN', 'SITE_URL'].every((k) =>
+      e.message.includes(k)));
   const ok = {
     MONGODB_URI: 'mongodb://x', SOURCE_USERNAME: 'u', SOURCE_PASSWORD: 'p',
     CLOUDINARY_CLOUD_NAME: 'c', CLOUDINARY_API_KEY: 'k', CLOUDINARY_API_SECRET: 's',
   };
   assert.doesNotThrow(() => validateEnv(ok, { service: false }));
-  assert.throws(() => validateEnv(ok, { service: true }), /REDIS_URL/);
+  assert.throws(() => validateEnv(ok, { service: true }), /TELEGRAM_CHANNEL_ID/);
   assert.throws(() => validateEnv({ ...ok, SOURCE_BASE_URL: 'ckauto.co.kr' }, { service: false }), /SOURCE_BASE_URL/);
 });

@@ -1,27 +1,15 @@
 import { Module } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { BullModule } from '@nestjs/bullmq';
 
 import { CoreModule } from './core.module';
-import { IngestionProcessor, INGEST_QUEUE } from './ingestion/ingestion.processor';
-import { IngestionScheduler } from './ingestion/ingestion.scheduler';
 import { AdminController } from './admin/admin.controller';
 import { HealthController } from './health/health.controller';
 import { AdminTokenGuard } from './auth/admin-token.guard';
+import { BotService } from './bot/bot.service';
 
-/** The long-running service: core pipeline + Redis queue, daily schedule and HTTP API. */
+/** The long-running service: core pipeline, the Telegram import bot and the admin HTTP API. */
 @Module({
-  imports: [
-    CoreModule.forRoot({ service: true }),
-    BullModule.forRootAsync({
-      inject: [ConfigService],
-      useFactory: (c: ConfigService) => ({
-        connection: { url: c.getOrThrow<string>('REDIS_URL') },
-      }),
-    }),
-    BullModule.registerQueue({ name: INGEST_QUEUE }),
-  ],
+  imports: [CoreModule.forRoot({ service: true })],
   controllers: [AdminController, HealthController],
-  providers: [AdminTokenGuard, IngestionProcessor, IngestionScheduler],
+  providers: [AdminTokenGuard, BotService],
 })
 export class AppModule {}

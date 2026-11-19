@@ -1,28 +1,44 @@
 # auto-auction
 
-Daily ingestion of CKAuto vehicle listings into the after-auction platform.
+A Telegram bot that imports CKAuto cars **one at a time, chosen by an admin**,
+into the after-auction platform and posts each one to the Telegram channel.
 Standalone NestJS microservice.
 
-## Pipeline
+Until 2026-11-19 this service fetched and processed every CKAuto lot daily.
+That cost hours and thousands of photo uploads for cars nobody had picked, so
+it was replaced by this bot.
+
+## Flow
 
 ```
-  CKAuto JSON API
+ admin -> bot:  https://ckauto.co.kr/auction?v=261119G020
+                30000-38000          (estimated price, USD)
+                qora                 (colour, optional)
         |
-   [1] fetch      SourceClientService   own partner account, 1 req at a time
-        |
+   [1] fetch      SourceClientService   stream CKAuto's snapshot, stop at the lot
    [2] store raw  raw_listings          verbatim payload + sha256 hash
-        |
-   [3] diff       payloadHash compare   unchanged listings stop here
-        |
-   [4] normalise  normalizer.ts         field mapping, sourceId resolved first
+   [3] normalise  normalizer.ts         field mapping, sourceId resolved first
         |         ImageService          Cloudinary, one folder per sourceId
         v
-   vehicles (status: pending)
+ bot -> admin:  the channel post as it will look  [✅ Publish] [✏️ Edit name] [❌ Cancel]
         |
-   TelegramService  -->  "5 new cars"  -->  admin panel link
-        |
-   admin approves  -->  POST auction /internal/car/import  -->  status: approved
+   Publish:  USD -> KRW at the site's own rate
+             POST auction /internal/car/import   -> car on the site (status: approved)
+             album + caption to TELEGRAM_CHANNEL_ID, linking SITE_URL/products/<id>
 ```
+
+- Only users in `TELEGRAM_ADMIN_IDS` get answers (falls back to
+  `TELEGRAM_CHAT_ID`); everyone else is ignored silently.
+- The car's name is translated from CKAuto's Korean (`catalogue/model-names.ts`).
+  Words it cannot translate are left out and the preview warns, so Korean never
+  reaches the site or the channel. **✏️ Edit name** replaces it.
+- The site gets the price as a KRW range; the channel shows the USD range as
+  typed. The CKAuto auction end time is in the channel post only (Tashkent time),
+  never on the site.
+- Sending a published lot again returns its site and channel links instead of
+  creating a duplicate. If the site accepted the car but the channel post failed
+  (e.g. the bot is not a channel admin), the bot offers **🔁 Retry channel post**.
+- Wording of the channel post: `src/bot/caption.ts`.
 
 ## Not mixing up cars
 
@@ -47,95 +63,65 @@ against exactly what the source sent.
 
 Full reference: [docs/ckauto-api.md](docs/ckauto-api.md). In short:
 
-- Login is a cookie session: `GET /api/auth/csrf`, then `POST /api/auth/login`
-  with `loginId`/`password` and an `X-CSRF-Token` header.
+- Login is a cookie session: `POST /api/auth/login` with `loginId`/`password`,
+  exactly as CKAuto's own frontend sends it. `npm run check:login` tries it once.
 - `GET /api/app/state` returns the **whole dataset** (~18 MB, ~13k vehicles, no
-  pagination). Every run is a full snapshot, stream-parsed, filtered to
-  `INGEST_STATUSES` plus vehicles we already track, then diffed on `code`.
+  pagination, no per-lot endpoint). An import streams it and stops as soon as
+  it reaches the requested lot, so expect ~10-30 s per car including photos.
 - Logged out, the same call still answers - with 271 rows and 16 of 30 fields.
-  The client checks the first record and aborts the run rather than ingest
-  that reduced view.
+  The client checks the first record and aborts rather than use that view.
 - Photos are static files (`photoFiles` paths), no auth needed.
 - `highestBidder` (real member names) and `isMyBid` are stripped before
   anything is stored, the raw audit copy included.
-- There is **no price** in the source - it is an auction. The admin sets
-  `priceKrw` at approval. Cars default to `DAMAGED` (insurance salvage).
-- Junk in legacy rows (column-shifted `process`/`progressMethod`, placeholder
-  mileages like 1,111,111) never fails a row: the value becomes `UNKNOWN` or
-  empty and is listed in the vehicle's `needsReview`.
-
-First run on a fresh database copies photos for every live lot: roughly
-274 lots x up to `MAX_IMAGES_PER_VEHICLE` photos at `REQUEST_DELAY_MS` each,
-so expect an hour or more. Later runs only fetch photos for new lots.
+- There is **no price** and **no colour** in the source; the admin gives both
+  to the bot. Cars default to `DAMAGED` (insurance salvage).
 
 ## Running
 
 ```bash
 cp .env.example .env    # fill it in
 npm install
-docker compose up -d    # mongo + redis, if you are not using hosted ones
-npm test                # unit tests: normaliser, catalogue mapping, config check
-npm run ingest:once     # one run and exit; needs MongoDB + Cloudinary, not Redis
-npm run start:dev       # service + daily cron at 04:00 KST
+docker compose up -d    # mongo, if you are not using a hosted one
+npm test                # unit tests: normaliser, catalogue mapping, bot parsing/caption, config check
+npm run start:dev       # service + Telegram bot
 ```
 
 Startup checks the configuration and refuses to boot with a list of every
-missing setting (MongoDB, CKAuto login, Cloudinary, plus Redis for the
-service).
+missing setting (MongoDB, CKAuto login, Cloudinary, bot token, channel,
+catalogue URL/token, site URL).
 
-`GET /health` is public: 200 `{status:"ok",mongo,redis}` when both answer,
-503 within ~2 s when either does not. The Dockerfile and `railway.json` use it.
+`GET /health` is public: `{status, mongo, bot}`. 503 only when MongoDB is down;
+`bot: false` means polling stopped (see the log - usually another program
+polling the same bot token). The Dockerfile healthcheck uses it.
 
-Run **one** instance. The queue already guarantees a run is processed once,
-but there is no reason for a daily batch to have two workers polling CKAuto.
+Run **one** instance: Telegram lets only one program poll a bot at a time.
 
 ## Admin API
 
+Used by the admin panel's Imports page, which lists what the bot fetched.
+
 | Method | Path                                | Purpose                      |
 |--------|-------------------------------------|------------------------------|
-| GET    | `/admin/vehicles?status=pending`    | review queue                 |
+| GET    | `/admin/vehicles?status=pending`    | fetched, not yet published   |
 | GET    | `/admin/vehicles/:sourceId`         | one car, all images          |
-| POST   | `/admin/vehicles/:sourceId/approve` | fix fields, publish to catalogue |
+| POST   | `/admin/vehicles/:sourceId/approve` | fix fields, publish to catalogue (no channel post) |
 | POST   | `/admin/vehicles/:sourceId/reject`  | reject (409 if already published) |
-| POST   | `/admin/vehicles/run-now`           | queue a run immediately      |
 
 All of these sit behind `AdminTokenGuard`: send `Authorization: Bearer $ADMIN_API_TOKEN`.
 The guard fails closed - if `ADMIN_API_TOKEN` is unset or under 16 characters it
-logs an error at startup and rejects every request, so a missing `.env` cannot
-quietly leave approve/reject open. Comparison is constant-time.
-
-```bash
-curl -H "Authorization: Bearer $ADMIN_API_TOKEN" \n  http://localhost:3100/admin/vehicles?status=pending
-```
-
-## Deliberate choices
-
-- **Polite by default.** `REQUEST_DELAY_MS` between every request, worker
-  concurrency 1. It is a daily batch; there is no reason to go fast, and a
-  steady trickle keeps our traffic unremarkable in their logs.
-- **Telegram notifies, it does not review.** Judging ten photos inside a chat
-  window is miserable. The bot sends a count and a link.
-- **Images are fetched only for genuinely new or changed listings.** The hash
-  check in stage 3 means a normal day costs almost nothing.
+logs an error at startup and rejects every request. Comparison is constant-time.
 
 ## Publishing to the catalogue
 
-Approve does two things in order: saves the admin's corrections, then POSTs the
-car to the auction backend's `/internal/car/import` (bearer
+The car is POSTed to the auction backend's `/internal/car/import` (bearer
 `CATALOGUE_IMPORT_TOKEN`, which must equal the backend's `IMPORT_API_TOKEN`).
 The vehicle only becomes `approved` once the catalogue accepts it, so
 `approved` always means "is in the catalogue" and carries `catalogueCarId`.
 
-- Approve body: any of `make model trim year mileageKm priceKrw fuelType
-  transmission color plateOrVin grade` (corrections), plus catalogue-only
-  `carTitle carType carCondition carDesc`. Nothing else is writable.
-- `GET /admin/vehicles/:sourceId` returns `cataloguePreview` (exactly what
-  approve would send) and `missing` (what would block it).
-- On failure the corrections are kept, `publishError` is set, and the answer
-  is 400 (fix the data - e.g. missing price, or a brand/year/title clash with
-  an existing car: change `carTitle`) or 502 (catalogue down/misconfigured).
-- The import is idempotent on `(importSource, importId)`: retrying an approve
-  can never list the same car twice.
+- On failure `publishError` is set and the bot (or the API: 400/502) says why -
+  e.g. a brand/year/title clash with an existing car: change the name.
+- The import is idempotent on `(importSource, importId)`: retrying can never
+  list the same car twice.
 - Korean source values are mapped to catalogue enums in
   `catalogue.service.ts` (fuel, transmission, brand, colour). A 17-char VIN
   becomes `carVin`; a Korean plate number is not treated as one.

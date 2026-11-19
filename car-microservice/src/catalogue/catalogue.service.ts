@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { request } from 'undici';
 import { Vehicle } from '../schemas/vehicle.schema';
+import { englishName } from './model-names';
 
 /**
  * Fields only the catalogue knows about. The source has no notion of body type
@@ -28,7 +29,8 @@ export interface CatalogueCarInput {
   carFuel?: string;
   carTransmission?: string;
   carYear: string;
-  carMileage: number;
+  /** km as a number, or "—" when CKAuto has no reading (the site shows it as-is). */
+  carMileage: number | string;
   carPrice: string;
   carColor?: string;
   carDesc?: string;
@@ -98,19 +100,34 @@ const BRAND_ALIASES: [RegExp, string][] = [
   [/마쓰다|마쯔다|mazda/i, 'MAZDA'],
   [/미쓰비시|mitsubishi/i, 'MITSUBISHI'],
   [/폴스타|polestar/i, 'POLESTAR'],
+  [/^gmc$/i, 'GMC'],
 ];
 
+// Korean (source data), English and Uzbek (what admins type to the Telegram bot).
 const COLOR_ALIASES: [RegExp, string][] = [
-  [/흰|화이트|백색|white|진주|펄/i, 'WHITE'],
-  [/검정|블랙|흑색|black/i, 'BLACK'],
-  [/은색|실버|silver/i, 'SILVER'],
-  [/회색|쥐색|그레이|gray|grey/i, 'GRAY'],
-  [/빨강|레드|red/i, 'RED'],
-  [/파랑|블루|청색|blue/i, 'BLUE'],
+  [/흰|화이트|백색|white|진주|펄|^oq\b/i, 'WHITE'],
+  [/검정|블랙|흑색|black|qora/i, 'BLACK'],
+  [/은색|실버|silver|kumush/i, 'SILVER'],
+  [/회색|쥐색|그레이|gray|grey|kulrang/i, 'GRAY'],
+  [/빨강|레드|red|qizil/i, 'RED'],
+  [/파랑|블루|청색|blue|ko['‘’`ʻ]?k\b/i, 'BLUE'],
 ];
 
 const firstMatch = (rules: [RegExp, string][], v?: string) =>
   v ? rules.find(([re]) => re.test(v))?.[1] : undefined;
+
+/** Catalogue brand code for a CKAuto make, e.g. "KGM(쌍용)" -> "SSANGYONG". */
+export const brandCode = (make?: string): string =>
+  firstMatch(BRAND_ALIASES, make) ?? make?.trim().toUpperCase() ?? '';
+
+/**
+ * USD amount(s) -> KRW rounded to 10,000 won, in the catalogue's price format:
+ * "41000000", or "41000000-52000000" for a range.
+ */
+export function usdToKrwPrice(usd: { min: number; max?: number }, rate: number): string {
+  const krw = (n: number) => Math.round((n * rate) / 10_000) * 10_000;
+  return usd.max !== undefined && usd.max !== usd.min ? `${krw(usd.min)}-${krw(usd.max)}` : String(krw(usd.min));
+}
 
 /** A VIN is 17 characters with no I, O or Q. Korean plates ("12가3456") are not. */
 const asVin = (v?: string) => {
@@ -131,9 +148,9 @@ export class CatalogueService {
 
   /** Builds the catalogue payload from a vehicle. Pure - no I/O. */
   toCatalogueInput(v: Vehicle, overrides: CatalogueOverrides = {}): CatalogueCarInput {
-    const brand = firstMatch(BRAND_ALIASES, v.make) ?? v.make?.trim().toUpperCase() ?? '';
+    const brand = brandCode(v.make);
     const year = v.year ? String(v.year) : '';
-    const fallbackTitle = [year, brand, v.model, v.trim].filter(Boolean).join(' ');
+    const fallbackTitle = englishName(brand, v.model, v.trim).name;
 
     // Images in source order, and only ones that actually reached Cloudinary
     // and belong to this vehicle.
@@ -155,8 +172,10 @@ export class CatalogueService {
       carFuel: firstMatch(FUEL_RULES, v.fuelType) ?? (v.fuelType ? 'OTHER' : undefined),
       carTransmission: firstMatch(TRANSMISSION_RULES, v.transmission),
       carYear: year,
-      carMileage: v.mileageKm as number,
-      carPrice: v.priceKrw !== undefined ? String(v.priceKrw) : '',
+      // Some lots have no odometer reading at all; that should not block publishing.
+      carMileage: v.mileageKm ?? '—',
+      // A range set by the Telegram bot wins over a single admin-panel price.
+      carPrice: v.priceKrwRange || (v.priceKrw !== undefined && v.priceKrw !== null ? String(v.priceKrw) : ''),
       carColor: firstMatch(COLOR_ALIASES, v.color) ?? v.color,
       carDesc: overrides.carDesc?.trim() || undefined,
       carImages,
@@ -169,7 +188,6 @@ export class CatalogueService {
     if (!input.carBrand) missing.push('make');
     if (!input.carYear) missing.push('year');
     if (!input.carTitle) missing.push('carTitle');
-    if (input.carMileage === undefined || input.carMileage === null) missing.push('mileageKm');
     if (!input.carPrice) missing.push('priceKrw');
     if (!input.carImages.length) missing.push('images (none uploaded to Cloudinary)');
     return missing;
@@ -220,6 +238,26 @@ export class CatalogueService {
     const message = body?.message ?? `Catalogue returned ${res.statusCode}`;
     const kind = res.statusCode === 400 ? 'invalid' : 'unavailable';
     throw new CataloguePublishError(message, kind, body?.problems ?? []);
+  }
+
+  /** The site's own USD->KRW rate (GET /currency/usd-krw), so bot prices match what the site shows. */
+  async usdKrwRate(): Promise<number> {
+    const base = this.config.get<string>('CATALOGUE_API_URL');
+    if (!base) throw new CataloguePublishError('CATALOGUE_API_URL is not set', 'unavailable');
+    try {
+      const res = await request(new URL('/currency/usd-krw', base).toString(), {
+        headersTimeout: 15_000,
+        bodyTimeout: 15_000,
+      });
+      const body = (await res.body.json().catch(() => ({}))) as { rate?: unknown };
+      const rate = Number(body?.rate);
+      if (res.statusCode !== 200 || !Number.isFinite(rate) || rate <= 0) {
+        throw new Error(`answered ${res.statusCode}`);
+      }
+      return rate;
+    } catch (err) {
+      throw new CataloguePublishError(`Exchange rate unavailable: ${(err as Error).message}`, 'unavailable');
+    }
   }
 
   private get importSource(): string {

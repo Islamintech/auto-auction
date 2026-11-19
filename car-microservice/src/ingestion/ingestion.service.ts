@@ -6,27 +6,31 @@ import { RawListing, RawListingDocument } from '../schemas/raw-listing.schema';
 import { Vehicle, VehicleDocument, VehicleStatus } from '../schemas/vehicle.schema';
 import { SourceClientService } from '../source/source-client.service';
 import { ImageService } from '../images/image.service';
-import { RunSummary, TelegramService } from '../notify/telegram.service';
 import { normalise, NormalisedVehicle, sanitise } from './normalizer';
 
+/** The code is not in CKAuto's current dataset (typo, or the lot was removed). */
+export class ListingNotFoundError extends Error {}
+
+/**
+ * Imports one CKAuto lot on request (from the Telegram bot).
+ *
+ * There used to be a daily job that pulled and processed every lot; it was
+ * dropped on 2026-11-19 because it cost hours and thousands of photo uploads
+ * for cars nobody had chosen. Now an admin picks each car.
+ */
 @Injectable()
 export class IngestionService {
   private readonly log = new Logger(IngestionService.name);
+  /** One import at a time: they share CKAuto's session and each streams the whole snapshot. */
+  private queue: Promise<unknown> = Promise.resolve();
 
   constructor(
     private readonly config: ConfigService,
     private readonly source: SourceClientService,
     private readonly images: ImageService,
-    private readonly telegram: TelegramService,
     @InjectModel(RawListing.name) private readonly rawModel: Model<RawListingDocument>,
     @InjectModel(Vehicle.name) private readonly vehicleModel: Model<VehicleDocument>,
   ) {}
-
-  /** CKAuto statuses that enter the review queue. Default: live lots only (공매진행). */
-  private get ingestStatuses(): Set<string> {
-    const v = this.config.get<string>('INGEST_STATUSES') ?? '공매진행';
-    return new Set(v.split(',').map((s) => s.trim()).filter(Boolean));
-  }
 
   /** Lots have up to 138 photos; the catalogue needs a handful. */
   private get maxImages(): number {
@@ -34,141 +38,63 @@ export class IngestionService {
   }
 
   /**
-   * Whether every image the source lists for this vehicle is already stored
-   * with a usable Cloudinary asset. Used to decide if an unchanged payload can
-   * safely be skipped.
+   * Finds `code` in CKAuto's dataset, stores it and copies its photos to
+   * Cloudinary. Returns the stored vehicle.
+   *
+   * CKAuto has no per-lot endpoint: the only way to read one lot is to stream
+   * the full ~18 MB snapshot. The stream is stopped as soon as the lot is found.
    */
-  private imagesComplete(existing: VehicleDocument, candidate: NormalisedVehicle): boolean {
-    const usable = existing.images.filter(
-      (img) => img.sourceId === existing.sourceId && img.cloudinaryPublicId && img.secureUrl,
-    ).length;
-    return usable >= candidate.images.length;
+  importOne(code: string): Promise<VehicleDocument> {
+    const run = this.queue.then(() => this.doImport(code));
+    this.queue = run.catch(() => undefined);
+    return run;
   }
 
-  /**
-   * Stage 1 snapshot, 2 store raw, 3 diff, 4 normalise + images.
-   *
-   * CKAuto has no pagination or incremental filter: every run downloads the
-   * whole ~18 MB snapshot. It is streamed and filtered down to the rows we
-   * care about - lots in INGEST_STATUSES, plus anything we already track so a
-   * reviewed car's status (e.g. auction ended) stays current - and only then
-   * processed. Processing holds no connection open, so an hour of polite image
-   * uploads cannot time out the download.
-   */
-  async run(): Promise<RunSummary> {
+  private async doImport(code: string): Promise<VehicleDocument> {
     const startedAt = new Date();
-    const summary: RunSummary = { newCount: 0, updatedCount: 0, failedCount: 0, samples: [] };
-    const statuses = this.ingestStatuses;
     const origin = this.config.get<string>('SOURCE_BASE_URL') ?? 'https://ckauto.co.kr';
 
-    const known = new Set<string>(
-      (await this.vehicleModel.find({}, { sourceId: 1, _id: 0 }).lean()).map((v) => v.sourceId),
-    );
-
-    const selected: Record<string, unknown>[] = [];
-    let total = 0;
-    for await (const raw of this.source.iterateListings()) {
-      total++;
-      const code = String(raw.code ?? '');
-      if (statuses.has(String(raw.status ?? '')) || known.has(code)) selected.push(sanitise(raw));
-    }
-    this.log.log(`Snapshot: ${total} vehicles, ${selected.length} selected for processing`);
-
-    for (const raw of selected) {
-      let sourceId = '(unknown)';
-      try {
-        const candidate = normalise(raw, origin);
-        sourceId = candidate.sourceId;
-        candidate.images = candidate.images.slice(0, this.maxImages);
-
-        // Stage 2: keep the original (minus stripped PII), always.
-        await this.rawModel.updateOne(
-          { sourceId: candidate.sourceId, payloadHash: candidate.payloadHash },
-          { $setOnInsert: { payload: raw, fetchedAt: startedAt } },
-          { upsert: true },
-        );
-
-        // Stage 3: have we already processed this exact payload, and did that
-        // processing actually finish? A listing whose images failed to upload
-        // keeps the same hash for ever, so testing the hash alone would leave
-        // it without photos permanently.
-        const existing = await this.vehicleModel.findOne({ sourceId: candidate.sourceId });
-        if (existing && existing.payloadHash === candidate.payloadHash && this.imagesComplete(existing, candidate)) {
-          await this.vehicleModel.updateOne(
-            { sourceId: candidate.sourceId },
-            { $set: { lastSeenAt: startedAt } },
-          );
-          continue;
-        }
-
-        // Stage 4: only now do we spend bandwidth on images. Images already
-        // in Cloudinary are reused by URL; only genuinely new ones are fetched,
-        // so a car whose first upload failed is not stranded without photos.
-        // Rejected cars are kept current but get no new uploads.
-        const stored =
-          existing?.status === VehicleStatus.REJECTED
-            ? existing.images
-            : await this.images.syncForVehicle(candidate.sourceId, candidate.images, existing?.images ?? []);
-
-        // A vehicle that failed on an earlier run and went through cleanly now
-        // goes back into the review queue; otherwise it would stay FAILED for good.
-        const recovered = existing?.status === VehicleStatus.FAILED;
-
-        await this.vehicleModel.updateOne(
-          { sourceId: candidate.sourceId },
-          {
-            $set: {
-              ...candidate,
-              images: stored,
-              lastSeenAt: startedAt,
-              ...(recovered ? { status: VehicleStatus.PENDING } : {}),
-            },
-            $unset: { lastError: '' },
-            $setOnInsert: {
-              firstSeenAt: startedAt,
-              ...(recovered ? {} : { status: VehicleStatus.PENDING }),
-            },
-          },
-          { upsert: true },
-        );
-
-        if (existing) {
-          summary.updatedCount++;
-        } else {
-          summary.newCount++;
-          const label = [candidate.year, candidate.make, candidate.model]
-            .filter(Boolean)
-            .join(' ') || candidate.sourceId;
-          summary.samples.push({ sourceId: candidate.sourceId, label });
-        }
-      } catch (err) {
-        summary.failedCount++;
-        this.log.error(`Listing ${sourceId} failed: ${(err as Error).message}`);
-        if (sourceId !== '(unknown)') {
-          const lastError = (err as Error).message;
-          // Record the error on every vehicle, but only move unreviewed ones to
-          // FAILED. An approved car is already in the catalogue and a rejected
-          // one was a decision; a bad fetch today should not undo either.
-          await this.vehicleModel
-            .updateOne(
-              { sourceId, status: { $in: [VehicleStatus.PENDING, VehicleStatus.FAILED] } },
-              { $set: { status: VehicleStatus.FAILED, lastError } },
-            )
-            .catch(() => undefined);
-          await this.vehicleModel
-            .updateOne(
-              { sourceId, status: { $in: [VehicleStatus.APPROVED, VehicleStatus.REJECTED] } },
-              { $set: { lastError } },
-            )
-            .catch(() => undefined);
-        }
+    let raw: Record<string, unknown> | undefined;
+    for await (const listing of this.source.iterateListings()) {
+      if (String(listing.code ?? '').toUpperCase() === code) {
+        raw = sanitise(listing);
+        break; // ends the generator, which closes the download
       }
     }
+    if (!raw) throw new ListingNotFoundError(`Lot ${code} is not on CKAuto`);
 
-    this.log.log(
-      `Run complete - new ${summary.newCount}, updated ${summary.updatedCount}, failed ${summary.failedCount}`,
+    const candidate: NormalisedVehicle = normalise(raw, origin);
+    candidate.images = candidate.images.slice(0, this.maxImages);
+
+    // Keep the original (minus stripped PII), always.
+    await this.rawModel.updateOne(
+      { sourceId: candidate.sourceId, payloadHash: candidate.payloadHash },
+      { $setOnInsert: { payload: raw, fetchedAt: startedAt } },
+      { upsert: true },
     );
-    await this.telegram.notifyRun(summary);
-    return summary;
+
+    // Photos already in Cloudinary are reused by URL; only new ones are fetched.
+    const existing = await this.vehicleModel.findOne({ sourceId: candidate.sourceId });
+    const stored = await this.images.syncForVehicle(candidate.sourceId, candidate.images, existing?.images ?? []);
+
+    // An admin asking for a car again reopens it, unless it is already published.
+    const reopen = existing && existing.status !== VehicleStatus.APPROVED;
+
+    const vehicle = await this.vehicleModel.findOneAndUpdate(
+      { sourceId: candidate.sourceId },
+      {
+        $set: {
+          ...candidate,
+          images: stored,
+          lastSeenAt: startedAt,
+          ...(reopen ? { status: VehicleStatus.PENDING } : {}),
+        },
+        $unset: { lastError: '' },
+        $setOnInsert: { firstSeenAt: startedAt, ...(existing ? {} : { status: VehicleStatus.PENDING }) },
+      },
+      { upsert: true, new: true },
+    );
+    this.log.log(`Imported ${code}: ${stored.length}/${candidate.images.length} photos`);
+    return vehicle!;
   }
 }

@@ -86,6 +86,18 @@ export class Vehicle {
   @Prop() plateOrVin?: string;
   @Prop() grade?: string;
 
+  // --- set through the Telegram bot ---
+  /** Estimated price as the admin typed it, in USD. Shown as-is in the channel post. */
+  @Prop({ type: Object }) priceUsd?: { min: number; max?: number };
+  /** That estimate converted at publish time: "41000000" or "41000000-52000000". Sent as carPrice. */
+  @Prop() priceKrwRange?: string;
+
+  // --- Telegram channel post ---
+  @Prop() channelMessageId?: number;
+  @Prop() channelPostedAt?: Date;
+  /** Why the last channel post failed. Cleared on success. */
+  @Prop() channelError?: string;
+
   @Prop({ type: [VehicleImageSchema], default: [] })
   images: VehicleImage[];
 

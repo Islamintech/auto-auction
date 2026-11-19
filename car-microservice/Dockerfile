@@ -16,7 +16,7 @@ COPY --from=build /app/dist ./dist
 RUN chown -R node:node /app
 USER node
 EXPOSE 3100
-# Liveness: /health answers 200 only when MongoDB and Redis both respond.
+# Liveness: /health answers 200 when MongoDB responds.
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
   CMD wget -qO- "http://127.0.0.1:${PORT:-3100}/health" || exit 1
 CMD ["node", "dist/main.js"]

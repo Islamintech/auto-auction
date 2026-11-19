@@ -13,8 +13,17 @@ const ALWAYS_REQUIRED = [
   'CLOUDINARY_API_SECRET',
 ];
 
-/** The queue, scheduler and admin API exist only in the long-running service. */
-const SERVICE_REQUIRED = ['REDIS_URL'];
+/**
+ * The Telegram bot and admin API exist only in the long-running service. The
+ * bot cannot do its one job (site + channel) without any of these.
+ */
+const SERVICE_REQUIRED = [
+  'TELEGRAM_BOT_TOKEN',
+  'TELEGRAM_CHANNEL_ID',
+  'CATALOGUE_API_URL',
+  'CATALOGUE_IMPORT_TOKEN',
+  'SITE_URL',
+];
 
 export function validateEnv(env: Record<string, unknown>, opts: { service: boolean }) {
   const blank = (k: string) => !String(env[k] ?? '').trim();
