@@ -19,7 +19,7 @@ import { formatKrw } from "../../../lib/currency";
 import { useGlobals } from "../../hooks/useGlobals";
 import { sweetErrorHandling } from "../../../lib/sweetAlert";
 import "../../../css/carDetail.css";
-import { formatDateTime, formatNumber } from "../../../lib/locale";
+import { formatDateTime } from "../../../lib/locale";
 
 export default function CarDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -219,12 +219,6 @@ export default function CarDetailPage() {
                   {car.brand} · {car.year}
                 </div>
                 <h1 className="cd-title">{car.title}</h1>
-                <div style={{ display: "flex", flexWrap: "nowrap", gap: 16, fontSize: 12, opacity: 0.7, marginTop: 6, marginBottom: 12, fontFamily: "var(--mono-font)" }}>
-                  <span>👁 {formatNumber(car.viewCount ?? 0)}</span>
-                  <span>♥ {formatNumber(car.likeCount ?? 0)}</span>
-                  <span>💬 {formatNumber(car.commentCount ?? 0)}</span>
-                  <span>📞 {formatNumber(car.consultationCount ?? 0)}</span>
-                </div>
               </div>
               <button
                 className={`cd-save${saved ? " cd-save--on" : ""}`}
@@ -293,7 +287,7 @@ export default function CarDetailPage() {
 
       <section className="cd-comments">
         <div style={{ fontSize: 12, fontFamily: "var(--mono-font)", letterSpacing: "0.18em", opacity: 0.6, marginBottom: 12 }}>
-          {t("cardetail.comments")} · {car.commentCount ?? 0}
+          {t("cardetail.comments")}
         </div>
 
         <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>

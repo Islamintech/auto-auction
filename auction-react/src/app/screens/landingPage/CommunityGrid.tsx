@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { useHistory } from "react-router-dom";
-import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
-import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
 import SectionHeader from "./SectionHeader";
 import CarPlaceholder from "./CarPlaceholder";
 import { useTranslation } from "react-i18next";
@@ -66,14 +64,6 @@ export default function CommunityGrid({ onOpen }: { onOpen: () => void }) {
                 <div className="landing-comm__tag">{p.postType.replace("_", " ")}</div>
                 <div className="landing-comm__title">{p.postTitle}</div>
                 <div className="landing-comm__meta">
-                  <span className="landing-comm__metaitem">
-                    <FavoriteBorderIcon sx={{ fontSize: 13 }} />
-                    {p.postLikeCount}
-                  </span>
-                  <span className="landing-comm__metaitem">
-                    <ChatBubbleOutlineIcon sx={{ fontSize: 13 }} />
-                    {p.postCommentCount}
-                  </span>
                   <span className="landing-comm__date">{date}</span>
                 </div>
               </div>

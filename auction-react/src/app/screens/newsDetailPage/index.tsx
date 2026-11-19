@@ -156,12 +156,6 @@ export default function NewsDetailPage() {
       <h1 className="news-detail__title">{post.postTitle}</h1>
       <div className="news-detail__meta">
         <span>{date}</span>
-        <span>·</span>
-        <span>{post.postCommentCount} {t("news.replies")}</span>
-        <span>·</span>
-        <span>{post.postViewCount} {t("news.views")}</span>
-        <span>·</span>
-        <span>{post.postLikeCount} {t("news.likes")}</span>
       </div>
 
       <div className="news-detail__hero">
@@ -210,12 +204,11 @@ export default function NewsDetailPage() {
             <path d="M12 21s-7-4.5-9-9a5 5 0 0 1 9-3 5 5 0 0 1 9 3c-2 4.5-9 9-9 9Z" />
           </svg>
         </button>
-        <span style={{ fontSize: 13, opacity: 0.7 }}>{post.postLikeCount} {t("news.likes")}</span>
       </div>
 
       <section style={{ marginTop: 32 }}>
         <div style={{ fontSize: 12, fontFamily: "var(--mono-font)", letterSpacing: "0.18em", opacity: 0.6, marginBottom: 12 }}>
-          {t("news.comments")} · {post.postCommentCount ?? 0}
+          {t("news.comments")}
         </div>
 
         <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>

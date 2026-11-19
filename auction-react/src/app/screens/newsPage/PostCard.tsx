@@ -57,10 +57,6 @@ export default function PostCard({ post, onOpen, variant = "card" }: Props) {
           <div className="news-row__title">{post.postTitle}</div>
           <div className="news-row__meta">
             <span>{formatDate(post.createdAt)}</span>
-            <span>·</span>
-            <span>{post.postCommentCount} {t("news.replies")}</span>
-            <span>·</span>
-            <span>{post.postViewCount} {t("news.views")}</span>
           </div>
         </div>
       </div>
@@ -77,12 +73,6 @@ export default function PostCard({ post, onOpen, variant = "card" }: Props) {
           <div className="news-feature__excerpt">{excerptOf(post.postBody)}</div>
           <div className="news-feature__meta">
             <span>{formatDate(post.createdAt)}</span>
-            <span>·</span>
-            <span>👁 {post.postViewCount} {t("news.views")}</span>
-            <span>·</span>
-            <span>♥ {post.postLikeCount} {t("news.likes")}</span>
-            <span>·</span>
-            <span>💬 {post.postCommentCount} {t("news.replies")}</span>
           </div>
         </div>
       </div>
@@ -98,7 +88,6 @@ export default function PostCard({ post, onOpen, variant = "card" }: Props) {
         <div className="news-card__excerpt">{excerptOf(post.postBody)}</div>
         <div className="news-card__meta">
           <span>{formatDate(post.createdAt)}</span>
-          <span>👁 {post.postViewCount} · ♥ {post.postLikeCount} · 💬 {post.postCommentCount}</span>
         </div>
       </div>
     </div>
