@@ -50,9 +50,12 @@ svg {
 }
 
 @media (max-width: 768px) {
+  /* clip, not hidden: "hidden" on both html and body turns <body> into the
+     scroll container, so the window never scrolls on phones and every
+     window "scroll" listener (e.g. the glass navbar) goes silent. */
   html,
   body {
-    overflow-x: hidden;
+    overflow-x: clip;
   }
 }
 
