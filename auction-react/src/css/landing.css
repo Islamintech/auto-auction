@@ -1183,3 +1183,18 @@
   .hero-slider__slide { transition: none; }
   .hero-slider__copy { animation: none; }
 }
+
+/* The slider starts at the very top, under the glass navbar
+   (--home-nav-h is set by HomeNavbar from its real height). */
+.landing .hero-slider {
+  margin-top: calc(-1 * var(--home-nav-h, 82px));
+  height: 100vh;
+  height: 100svh;
+}
+.landing .hero-slider::after {
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.45) 0%, rgba(0, 0, 0, 0) 26%, rgba(0, 0, 0, 0) 48%, rgba(0, 0, 0, 0.7) 100%);
+}
+@media (max-width: 700px) and (orientation: portrait) {
+  .landing .hero-slider { height: 100svh; min-height: 600px; }
+  .landing .hero-slider::after { background: linear-gradient(180deg, rgba(0, 0, 0, 0.45) 0%, rgba(0, 0, 0, 0) 22%); }
+}

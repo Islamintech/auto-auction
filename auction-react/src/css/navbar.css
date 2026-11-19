@@ -872,3 +872,30 @@
   .other-navbar .navbar-container .menu .brand-logo { width: 26px; height: 26px; }
   .other-navbar .brand-link { gap: 5px; }
 }
+
+/* ────────────────────────────────────────────────────────────
+   Homepage: glass bar over the photo slider (2026-11-19).
+   HomeNavbar adds .is-glass while the slider is under the bar;
+   after that it is the normal themed bar again. Menus open as
+   portals (MUI) and the phone drawer turns the glass off, so they
+   keep the normal colours.
+   ──────────────────────────────────────────────────────────── */
+.home-navbar {
+  transition: background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+}
+.home-navbar.is-glass {
+  --nav-text: #ffffff;
+  --line: rgba(255, 255, 255, 0.35);
+  background: linear-gradient(180deg, rgba(8, 9, 11, 0.42), rgba(8, 9, 11, 0.18));
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: none;
+}
+.home-navbar.is-glass .brand-logo { filter: brightness(0) invert(1); }
+.home-navbar.is-glass .navbar-container .menu .links .login-button {
+  background-color: #ffffff !important;
+  color: #0b0c0e !important;
+}
+.home-navbar.is-glass .theme-toggle:hover,
+.home-navbar.is-glass .lang-switch:hover { background: rgba(255, 255, 255, 0.14); }

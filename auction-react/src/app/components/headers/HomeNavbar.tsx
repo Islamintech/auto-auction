@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Box, Button, Container, ListItemIcon, Menu, MenuItem, Stack } from "@mui/material";
 import { NavLink, useHistory } from "react-router-dom";
 import { useGlobals } from "../../hooks/useGlobals";
@@ -29,6 +29,32 @@ export default function HomeNavbar(props: HomeNavbarProps) {
   const { t } = useTranslation();
   const history = useHistory();
   const [menuOpen, setMenuOpen] = useState(false);
+  // Glass over the homepage photo slider: transparent, blurred, white text.
+  // Back to the normal themed bar once the slider has scrolled away.
+  const [overHero, setOverHero] = useState(true);
+  const barRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const bar = barRef.current;
+    if (!bar) return;
+    // The slider sits under the bar (landing.css pulls it up by this height).
+    const setHeight = () => document.documentElement.style.setProperty("--home-nav-h", `${bar.offsetHeight}px`);
+    setHeight();
+    const ro = new ResizeObserver(setHeight);
+    ro.observe(bar);
+    const onScroll = () => {
+      const hero = document.querySelector(".hero-slider");
+      setOverHero(!!hero && hero.getBoundingClientRect().bottom > bar.offsetHeight);
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
+  }, []);
   const closeMenu = () => setMenuOpen(false);
   const goMyPage = () => {
     handleCloseLogout();
@@ -40,7 +66,7 @@ export default function HomeNavbar(props: HomeNavbarProps) {
   };
 
   return (
-    <div className="home-navbar">
+    <div ref={barRef} className={`home-navbar${overHero && !menuOpen ? " is-glass" : ""}`}>
       <Container className="navbar-container">
         <Stack className="menu">
           <Box>
