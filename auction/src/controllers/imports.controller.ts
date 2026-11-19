@@ -90,6 +90,4 @@ importsController.reject = (req: Request, res: Response) => {
     return forward(res, 'POST', `/admin/vehicles/${id}/reject`);
 };
 
-importsController.runNow = (_req: Request, res: Response) => forward(res, 'POST', '/admin/vehicles/run-now');
-
 export default importsController;

@@ -135,16 +135,6 @@ function row(v) {
   ]);
 }
 
-function runNow() {
-  var btn = document.getElementById('run-now');
-  if (!confirm('Fetch the latest CKAuto snapshot now? New lots appear here when it finishes (it can take a while).')) return;
-  btn.disabled = true;
-  api('POST', '/run-now')
-    .then(function () { alert('Fetch queued. Refresh this page in a few minutes.'); })
-    .catch(function (err) { alert(err.message); })
-    .finally(function () { btn.disabled = false; });
-}
-
 /* ---------- review modal ---------- */
 
 function openReview(sourceId) {

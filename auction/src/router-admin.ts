@@ -117,7 +117,6 @@ routerAdmin.post(
 /** Imports (CKAuto review queue, served by car-microservice) */
 routerAdmin.get('/imports', adminController.verifyAdmin, importsController.page);
 routerAdmin.get('/imports/api/list', adminController.verifyAdmin, importsController.list);
-routerAdmin.post('/imports/api/run-now', adminController.verifyAdmin, importsController.runNow);
 routerAdmin.get('/imports/api/:sourceId', adminController.verifyAdmin, importsController.detail);
 routerAdmin.post('/imports/api/:sourceId/approve', adminController.verifyAdmin, importsController.approve);
 routerAdmin.post('/imports/api/:sourceId/reject', adminController.verifyAdmin, importsController.reject);
