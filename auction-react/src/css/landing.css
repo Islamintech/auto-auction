@@ -1198,3 +1198,12 @@
   .landing .hero-slider { height: 100svh; min-height: 600px; }
   .landing .hero-slider::after { background: linear-gradient(180deg, rgba(0, 0, 0, 0.45) 0%, rgba(0, 0, 0, 0) 22%); }
 }
+
+/* Bright photos (white studio, pale sky): a deeper shade behind the white text. */
+.landing .hero-slider--light::after {
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.5) 0%, rgba(0, 0, 0, 0.05) 26%, rgba(0, 0, 0, 0.15) 45%, rgba(0, 0, 0, 0.82) 100%);
+}
+.landing .hero-slider--light .hero-slider__copy { text-shadow: 0 1px 14px rgba(0, 0, 0, 0.35); }
+@media (max-width: 700px) and (orientation: portrait) {
+  .landing .hero-slider--light::after { background: linear-gradient(180deg, rgba(0, 0, 0, 0.5) 0%, rgba(0, 0, 0, 0) 22%); }
+}

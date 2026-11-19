@@ -36,7 +36,13 @@
       "sorento": "A seven-seat SUV for the whole family",
       "avante": "A reliable, economical first car",
       "santafe": "A big, comfortable SUV for long trips",
-      "carnival": "The minivan for large families and business"
+      "carnival": "The minivan for large families and business",
+      "bmw5": "The business sedan — comfort and confidence on every drive",
+      "bmwx5": "A spacious premium SUV with real BMW driving feel",
+      "eclass": "Quiet, refined and comfortable — the classic Mercedes saloon",
+      "glc": "The compact Mercedes SUV for city and family",
+      "modely": "The popular electric SUV — low running costs, lots of space",
+      "ioniq5": "Fast-charging electric car with a big, flat cabin"
     }
   },
   "sections": {

@@ -86,7 +86,7 @@ export default function Hero({ onBrowseModel, onConsultation }: Props) {
   return (
     <section
       ref={root}
-      className={`hero-slider${still ? " hero-slider--still" : ""}`}
+      className={`hero-slider${still ? " hero-slider--still" : ""}${slides[active]?.light ? " hero-slider--light" : ""}`}
       aria-roledescription="carousel"
       aria-label={t("hero.sliderLabel")}
       onMouseEnter={() => setHover(true)}
