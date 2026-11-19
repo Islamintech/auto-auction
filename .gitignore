@@ -9,3 +9,6 @@ node_modules/
 .claude/settings.local.json
 .vscode/
 .idea/
+
+# Server-only secrets for the VPS deployment
+deploy/*.env

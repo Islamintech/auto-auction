@@ -1,0 +1,75 @@
+# Auto Auction on the VPS: site, API + admin panel, Telegram import bot.
+#
+# Traffic comes in through a Cloudflare Tunnel (the `tunnel` service), so
+# nothing here publishes a port and nothing touches the other projects on this
+# server (e.g. hm, which owns ports 80/443). In the Cloudflare tunnel's
+# "Public hostnames":
+#   autoauction.kr, www.autoauction.kr  ->  http://web:8080
+#   ziyo.autoauction.kr                 ->  http://api:3000
+#
+# Secrets live next to this file and are not in git:
+#   .env      TUNNEL_TOKEN=...
+#   api.env   the auction backend's variables (MONGO_URL, SECRET_TOKEN, ...)
+#   bot.env   car-microservice's variables (see car-microservice/.env.example)
+#
+# See README.md in this folder for day-to-day commands.
+name: auto-auction
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  api:
+    build:
+      context: ../auction
+    restart: unless-stopped
+    env_file: api.env
+    environment:
+      PORT: "3000"
+      NODE_ENV: production
+    mem_limit: 512m
+    logging: *logging
+
+  web:
+    build:
+      context: ../auction-react
+      args:
+        REACT_APP_API_URL: https://ziyo.autoauction.kr/
+    restart: unless-stopped
+    environment:
+      PORT: "8080"
+      API_INTERNAL_URL: http://api:3000
+      SITE_URL: https://autoauction.kr
+    depends_on:
+      - api
+    mem_limit: 256m
+    logging: *logging
+
+  bot:
+    build:
+      context: ../car-microservice
+    restart: unless-stopped
+    env_file: bot.env
+    environment:
+      PORT: "3100"
+      # Straight to the API container, not through Cloudflare.
+      CATALOGUE_API_URL: http://api:3000
+    depends_on:
+      - api
+    mem_limit: 384m
+    logging: *logging
+
+  tunnel:
+    image: cloudflare/cloudflared:2025.11.1
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${TUNNEL_TOKEN:?set TUNNEL_TOKEN in deploy/.env}
+    depends_on:
+      - web
+      - api
+    mem_limit: 128m
+    logging: *logging

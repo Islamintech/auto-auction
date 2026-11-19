@@ -2,25 +2,34 @@
 
 One repository for the whole platform.
 
-| Folder | What it is | Stack | Deploys to |
-|---|---|---|---|
-| [`auction/`](auction) | API + admin panel (EJS) | Express, TypeScript, MongoDB | Railway (Dockerfile) |
-| [`auction-react/`](auction-react) | Public website | React (CRA), TypeScript | Vercel |
-| [`car-microservice/`](car-microservice) | Daily CKAuto ingestion, review queue | NestJS, MongoDB, Redis/BullMQ | — not deployed yet |
+| Folder | What it is | Stack |
+|---|---|---|
+| [`auction/`](auction) | API + admin panel (EJS), ziyo.autoauction.kr | Express, TypeScript, MongoDB |
+| [`auction-react/`](auction-react) | Public website, autoauction.kr (+ SEO server in `server/`) | React (CRA), TypeScript |
+| [`car-microservice/`](car-microservice) | Telegram bot: imports chosen CKAuto cars to the site and the channel | NestJS, MongoDB |
+| [`deploy/`](deploy) | Docker Compose for the VPS | Docker, Cloudflare Tunnel |
 
-Each folder is a self-contained app with its own `package.json`, `.env.example`
+Each app folder is self-contained with its own `package.json`, `.env.example`
 and README. Install and run them from inside their folder.
 
 ## How they connect
 
 ```
-CKAuto  ->  car-microservice  --(admin approves)-->  POST auction /internal/car/import
+admin -> Telegram bot (car-microservice) -> CKAuto lot -> POST auction /internal/car/import
+                                         -> post in the Telegram channel
                                                           |
-                                     auction-react  <--  auction public API
+                            auction-react (web)  <--  auction public API
 ```
 
-`car-microservice` sends approved cars to the backend with a shared token:
+`car-microservice` sends cars to the backend with a shared token:
 `CATALOGUE_IMPORT_TOKEN` (microservice) must equal `IMPORT_API_TOKEN` (auction).
+
+## Hosting
+
+Since 2026-11-19 everything runs on the Hostinger VPS with Docker Compose behind
+a Cloudflare Tunnel; see [deploy/README.md](deploy/README.md). (Railway and
+Vercel were used before that.) The database is MongoDB Atlas, images are on
+Cloudinary.
 
 ## History
 
@@ -28,13 +37,3 @@ CKAuto  ->  car-microservice  --(admin approves)-->  POST auction /internal/car/
 full histories were merged in under their folders; to follow a file across the
 move use `git log --follow`, or look at the commits reachable from the
 "Import ..." merge commits.
-
-## Deploying from this repo
-
-Hosting has to point at the right folder:
-
-- Railway (auction): service Settings -> Root Directory = `auction`
-- Vercel (auction-react): Project Settings -> Root Directory = `auction-react`
-
-Optionally set Railway's Watch Paths (`/auction/**`) and Vercel's Ignored Build Step
-so a change in one app does not redeploy the other.
