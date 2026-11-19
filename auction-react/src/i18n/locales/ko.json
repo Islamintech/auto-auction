@@ -91,8 +91,6 @@
     "cleanTitle": "클린 타이틀",
     "readyToDrive": "즉시 운행 가능",
     "fixedPrice": "고정 가격",
-    "reserveDeposit": "$2,500 예약금으로 예약",
-    "reserve": "예약하기 →",
     "requestConsultation": "상담 요청",
     "descCrashed": "사고 차량, 현 상태로 판매됩니다. 필요한 모든 교체 부품이 차량과 함께 배송됩니다.",
     "descClean": "1인 소유. 한국 검수 등급 4.5/5 — 전 패널 도장 두께 표준 허용 범위 이내.",
@@ -392,7 +390,7 @@
     "getConsultation": "상담 받기 →",
     "replyWithin24": "24시간 이내 답변",
     "guestTitle": "구매하실 준비가 되셨나요? 4분이면 계정을 만들 수 있습니다.",
-    "guestBody": "가입은 무료입니다. 첫 차량을 예약할 때만 환불 가능한 5% 보증금이 발생합니다. 신원 확인은 Veriff가 처리합니다.",
+    "guestBody": "가입은 무료입니다. 차량을 고르고 상담을 요청하시면 담당자가 전체 가격과 배송 정보를 안내해 드립니다.",
     "noCreditCard": "신용카드 등록 불필요",
     "arrow": "→"
   },

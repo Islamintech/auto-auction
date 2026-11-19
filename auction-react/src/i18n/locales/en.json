@@ -91,8 +91,6 @@
     "cleanTitle": "CLEAN TITLE",
     "readyToDrive": "READY TO DRIVE",
     "fixedPrice": "FIXED PRICE",
-    "reserveDeposit": "Reserve with $2,500 deposit",
-    "reserve": "Reserve →",
     "requestConsultation": "Request consultation",
     "descCrashed": "Damaged vehicle, sold as-is. All required replacement parts ship with the car.",
     "descClean": "Single owner. Korean inspection grade 4.5/5 — paint thickness within standard tolerance across all panels.",
@@ -392,7 +390,7 @@
     "getConsultation": "Get consultation →",
     "replyWithin24": "REPLY WITHIN 24 HOURS",
     "guestTitle": "Ready to buy? Set up your account in 4 minutes.",
-    "guestBody": "Free to register. 5% refundable deposit only when you reserve your first car. ID verification handled by Veriff.",
+    "guestBody": "Free to register. Choose a car and request a consultation — our team will contact you with the full price and delivery details.",
     "noCreditCard": "NO CREDIT CARD REQUIRED",
     "arrow": "→"
   },

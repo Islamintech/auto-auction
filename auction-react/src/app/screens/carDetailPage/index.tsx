@@ -8,6 +8,7 @@ import CarCard from "../landingPage/CarCard";
 import SectionHeader from "../landingPage/SectionHeader";
 import Tag from "./Tag";
 import BuyPanel from "./BuyPanel";
+import ConsultationModal from "../../components/consultation/ConsultationModal";
 import TabContent, { TabKey } from "./TabContent";
 import { retrieveCars, retrieveSavedIds } from "../landingPage/selector";
 import { toggleSaved } from "../landingPage/slice";
@@ -37,6 +38,7 @@ export default function CarDetailPage() {
   const [commentText, setCommentText] = useState("");
   const [posting, setPosting] = useState(false);
   const [liking, setLiking] = useState(false);
+  const [consultOpen, setConsultOpen] = useState(false);
   const { authMember, openSignup } = useGlobals();
 
   useEffect(() => {
@@ -400,15 +402,17 @@ export default function CarDetailPage() {
           <span className="cd-stickybar__label">{t("cardetail.fixedPrice")}</span>
           <span className="cd-stickybar__price">{formatKrw(car.price)}</span>
         </div>
-        <button
-          className="cd-btn cd-btn--primary cd-stickybar__btn"
-          onClick={() =>
-            document.getElementById("cd-buy-panel")?.scrollIntoView({ behavior: "smooth", block: "start" })
-          }
-        >
-          {t("cardetail.reserve")}
+        <button className="cd-btn cd-btn--primary cd-stickybar__btn" onClick={() => setConsultOpen(true)}>
+          {t("cardetail.requestConsultation")}
         </button>
       </div>
+
+      <ConsultationModal
+        open={consultOpen}
+        onClose={() => setConsultOpen(false)}
+        carId={car.id}
+        carTitle={`${car.brand} ${car.title}`}
+      />
     </div>
   );
 }

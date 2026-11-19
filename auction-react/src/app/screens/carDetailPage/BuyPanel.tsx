@@ -27,12 +27,10 @@ export default function BuyPanel({ car }: { car: AuctionCar }) {
         <div className={`cd-buy__price${krw.length > 14 ? " cd-buy__price--long" : ""}`}>{krw}</div>
         {usd && <div className="cd-buy__price-sub">{usd}</div>}
 
-        <button className="cd-btn cd-btn--primary cd-btn--lg" style={{ marginTop: 18 }}>
-          {t("cardetail.reserveDeposit")}
-        </button>
+        {/* One way to buy: talk to us first. There is no online deposit/reservation. */}
         <button
-          className="cd-btn cd-btn--secondary cd-btn--md"
-          style={{ marginTop: 8 }}
+          className="cd-btn cd-btn--primary cd-btn--lg"
+          style={{ marginTop: 18 }}
           onClick={() => setConsultOpen(true)}
         >
           {t("cardetail.requestConsultation")}
