@@ -1,7 +1,7 @@
 import { usePageSeo } from "../../../seo/useSeo";
 import React, { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useHistory } from "react-router-dom";
+import { useHistory, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import FilterGroup from "./FilterGroup";
 import FilterRow from "./FilterRow";
@@ -9,6 +9,7 @@ import Chip from "./Chip";
 import Tag from "./Tag";
 import CarCard from "../landingPage/CarCard";
 import CarPlaceholder from "../landingPage/CarPlaceholder";
+import { HERO_SLIDES, carMatchesModel, isModelKey } from "../landingPage/heroSlides";
 import { retrieveCars, retrieveSavedIds } from "../landingPage/selector";
 import { setCars, toggleSaved } from "../landingPage/slice";
 import { AuctionCar } from "../../../lib/types/landing";
@@ -43,6 +44,11 @@ export default function CarListPage() {
   const cars = useSelector(retrieveCars);
   const savedIds = useSelector(retrieveSavedIds);
   const usdRate = useUsdKrwRate();
+  // ?model=sonata (from the homepage slider): only that model.
+  const location = useLocation();
+  const modelParam = new URLSearchParams(location.search).get("model");
+  const modelKey = isModelKey(modelParam) ? modelParam : null;
+  const modelName = modelKey ? HERO_SLIDES.find((s) => s.key === modelKey)?.model ?? modelKey : "";
 
   const [view, setView] = useState<View>("grid");
   const [density, setDensity] = useState<Density>("spacious");
@@ -82,6 +88,7 @@ export default function CarListPage() {
 
   const filtered = useMemo(() => {
     const out = cars.filter((c) => {
+      if (modelKey && !carMatchesModel(c, modelKey)) return false;
       if (filters.brand !== "all" && c.brand !== filters.brand) return false;
       if (filters.category !== "all" && c.category !== filters.category) return false;
       // Prices are stored in KRW; the slider is in USD. Skip the price
@@ -98,13 +105,13 @@ export default function CarListPage() {
       default: break;
     }
     return sorted;
-  }, [cars, filters, usdRate]);
+  }, [cars, filters, usdRate, modelKey]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const paged = isMobile ? filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE) : filtered;
 
   // Reset to first page when the result set or device size changes
-  useEffect(() => { setPage(1); }, [filters, isMobile]);
+  useEffect(() => { setPage(1); }, [filters, isMobile, modelKey]);
 
   const onSave = (id: string) => dispatch(toggleSaved(id));
   const openCar = (c: AuctionCar) => history.push(`/products/${c.id}`);
@@ -216,6 +223,7 @@ export default function CarListPage() {
 
         <div className="carlist__results">
           <div className="cl-chips">
+            {modelKey && <Chip label={modelName} onClose={() => history.replace("/products")} />}
             {filters.brand !== "all" && (
               <Chip label={t("carlist.chipBrand", { value: filters.brand })} onClose={() => update({ brand: "all" })} />
             )}
@@ -282,7 +290,16 @@ export default function CarListPage() {
           )}
 
           {filtered.length === 0 && (
-            <div style={{ padding: 40, textAlign: "center", opacity: 0.6 }}>{t("carlist.noResults")}</div>
+            <div style={{ padding: 40, textAlign: "center" }}>
+              <div style={{ opacity: 0.6 }}>
+                {modelKey ? t("carlist.noModel", { model: modelName }) : t("carlist.noResults")}
+              </div>
+              {modelKey && (
+                <button type="button" className="cl-pagination__btn" style={{ marginTop: 16 }} onClick={() => history.replace("/products")}>
+                  {t("carlist.showAll")}
+                </button>
+              )}
+            </div>
           )}
 
           {isMobile && totalPages > 1 && (

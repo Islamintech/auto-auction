@@ -82,7 +82,9 @@
     "tagReady": "운행 가능",
     "noResults": "해당 필터에 맞는 차량이 없습니다.",
     "prev": "‹ 이전",
-    "next": "다음 ›"
+    "next": "다음 ›",
+    "noModel": "현재 판매 중인 {{model}}이(가) 없습니다. 상담을 요청하시면 찾아 드립니다.",
+    "showAll": "모든 차량 보기"
   },
   "cardetail": {
     "home": "홈",

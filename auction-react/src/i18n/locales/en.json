@@ -82,7 +82,9 @@
     "tagReady": "READY",
     "noResults": "No cars match those filters.",
     "prev": "‹ Prev",
-    "next": "Next ›"
+    "next": "Next ›",
+    "noModel": "No {{model}} for sale right now. Request a consultation and we will find one for you.",
+    "showAll": "Show all cars"
   },
   "cardetail": {
     "home": "HOME",
