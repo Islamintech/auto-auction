@@ -1,0 +1,31 @@
+{
+  "siteName": "Auto Auction",
+  "defaultImage": "/img/logo.png",
+  "pages": {
+    "/": {
+      "title": "Auto Auction — Korean cars at fixed prices",
+      "description": "Buy cars from Korea at a fixed price: inspected, insured and delivered door-to-door. New listings from Korean auctions every day."
+    },
+    "/products": {
+      "title": "Cars for sale from Korea | Auto Auction",
+      "description": "Browse Korean cars for sale: Hyundai, Kia, Genesis, BMW, Mercedes-Benz and more. Photos, mileage and prices for every car."
+    },
+    "/verify": {
+      "title": "Check a car by VIN | Auto Auction",
+      "description": "Enter a VIN to check a car bought through Auto Auction: sale record, photos and specifications."
+    },
+    "/help": {
+      "title": "Help — how buying works | Auto Auction",
+      "description": "How to buy a car from Korea with Auto Auction: choosing a car, payment, shipping and delivery, step by step."
+    },
+    "/news": {
+      "title": "News | Auto Auction",
+      "description": "News and updates from Auto Auction about Korean car auctions, prices and deliveries."
+    },
+    "/member-page": {
+      "title": "My account | Auto Auction",
+      "description": "Your Auto Auction account.",
+      "noindex": true
+    }
+  }
+}

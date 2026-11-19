@@ -1,3 +1,4 @@
+import { usePageSeo } from "../../../seo/useSeo";
 import React, { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useHistory } from "react-router-dom";
@@ -35,6 +36,7 @@ const CONDITIONS: [string, string][] = [
 ];
 
 export default function CarListPage() {
+  usePageSeo("/products");
   const { t } = useTranslation();
   const history = useHistory();
   const dispatch = useDispatch();

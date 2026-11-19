@@ -1,3 +1,4 @@
+import { usePageSeo } from "../../../seo/useSeo";
 import React, { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useHistory } from "react-router-dom";
@@ -16,6 +17,7 @@ import { formatKrw } from "../../../lib/currency";
 import "../../../css/landing.css";
 
 export default function LandingPage() {
+  usePageSeo("/");
   const history = useHistory();
   const dispatch = useDispatch();
   const cars = useSelector(retrieveCars);

@@ -1,3 +1,4 @@
+import { useSeo, carSeo } from "../../../seo/useSeo";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useHistory, useParams } from "react-router-dom";
@@ -28,6 +29,7 @@ export default function CarDetailPage() {
   const savedIds = useSelector(retrieveSavedIds);
 
   const [car, setCar] = useState<AuctionCar | null>(null);
+  useSeo(carSeo(car));
   const [related, setRelated] = useState<AuctionCar[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeImg, setActiveImg] = useState(0);

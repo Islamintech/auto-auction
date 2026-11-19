@@ -1,0 +1,16 @@
+{
+  "name": "auto-auction-web-server",
+  "private": true,
+  "description": "Serves the React build with per-page SEO tags, sitemap.xml and robots.txt",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "node --test meta.test.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "express": "4.21.2"
+  }
+}

@@ -1,3 +1,4 @@
+import { usePageSeo } from "../../../seo/useSeo";
 import React, { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory, useLocation, useParams } from "react-router-dom";
@@ -40,6 +41,7 @@ function readCache(): Cached | null {
 }
 
 export default function CarVerifyPage() {
+  usePageSeo("/verify");
   const { t } = useTranslation();
   const [vin, setVin] = useState("");
   const [status, setStatus] = useState<Status>("idle");

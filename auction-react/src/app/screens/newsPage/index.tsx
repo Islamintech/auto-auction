@@ -1,3 +1,4 @@
+import { usePageSeo } from "../../../seo/useSeo";
 import React, { useEffect, useMemo, useState } from "react";
 import { useHistory } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -16,6 +17,7 @@ const LABEL_KEYS: Record<"ALL" | PostType, string> = {
 };
 
 export default function NewsPage() {
+  usePageSeo("/news");
   const history = useHistory();
   const { t } = useTranslation();
   const [active, setActive] = useState<"ALL" | PostType>("ALL");

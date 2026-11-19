@@ -1,3 +1,4 @@
+import { useSeo } from "../../../seo/useSeo";
 import React, { useEffect, useState } from "react";
 import { useHistory, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -23,6 +24,15 @@ export default function NewsDetailPage() {
   const history = useHistory();
   const { t } = useTranslation();
   const [post, setPost] = useState<Post | null>(null);
+  useSeo(
+    post
+      ? {
+          title: `${post.postTitle} | Auto Auction`,
+          description: (post.postBody || "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim().slice(0, 160),
+          path: `/news/${post._id}`,
+        }
+      : null,
+  );
   const [related, setRelated] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);

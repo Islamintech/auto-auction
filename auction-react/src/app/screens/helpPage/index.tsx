@@ -1,3 +1,4 @@
+import { usePageSeo } from "../../../seo/useSeo";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { Box, Container, Stack, Tabs } from "@mui/material";
@@ -14,6 +15,7 @@ import { CONTACT } from "../../../lib/contact";
 import "../../../css/help.css";
 
 export default function HelpPage() {
+  usePageSeo("/help");
   const { t } = useTranslation();
   const faq = t("faq.items", { returnObjects: true }) as {
     question: string;

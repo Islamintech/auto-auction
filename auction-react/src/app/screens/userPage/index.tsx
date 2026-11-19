@@ -1,3 +1,4 @@
+import { usePageSeo } from "../../../seo/useSeo";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useHistory } from "react-router-dom";
@@ -31,6 +32,7 @@ function formatJoinedDate(d?: Date | string) {
 }
 
 export default function UserPage() {
+  usePageSeo("/member-page");
   const history = useHistory();
   const dispatch = useDispatch();
   const cars = useSelector(retrieveCars);
