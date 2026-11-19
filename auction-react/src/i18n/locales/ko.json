@@ -22,7 +22,22 @@
     "statDelivered": "차량 인도",
     "statChannels": "소싱 채널",
     "statTransit": "한국 → 전 세계",
-    "statRepeat": "재구매 고객"
+    "statRepeat": "재구매 고객",
+    "sliderLabel": "한국의 인기 차량",
+    "seeModel": "판매 중인 {{model}} 보기",
+    "prev": "이전 차량",
+    "next": "다음 차량",
+    "play": "재생",
+    "pause": "일시정지",
+    "slides": {
+      "sonata": "편안하고 경제적이며 정비가 쉬운 대표 패밀리 세단",
+      "sportage": "도심과 교외 모두에 어울리는 컴팩트 SUV",
+      "tucson": "과감한 디자인, 넓은 실내, 일상의 실용성",
+      "sorento": "온 가족을 위한 7인승 SUV",
+      "avante": "믿을 수 있고 경제적인 첫 차",
+      "santafe": "장거리 여행에 편안한 대형 SUV",
+      "carnival": "대가족과 비즈니스를 위한 미니밴"
+    }
   },
   "sections": {
     "crashed": "사고 차량 · 부품 포함",

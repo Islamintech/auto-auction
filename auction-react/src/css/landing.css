@@ -974,3 +974,212 @@
 .car-ph--compact .car-ph__label { inset-inline-start: 10px; inset-inline-end: 10px; bottom: 8px; font-size: 9px; }
 .car-ph__label-main { opacity: 0.9; }
 .car-ph__label-tone { opacity: 0.55; }
+
+/* ──────────────────────────────────────────────────────────
+   HERO SLIDER (replaces the background video, 2026-11-19)
+   Full-screen photos of everyday Korean cars, same behaviour as
+   the HM Group site. White text on a dark gradient in both themes.
+   ────────────────────────────────────────────────────────── */
+.hero-slider {
+  position: relative;
+  /* One screen minus the navbar (svh follows the phone's collapsing URL bar). */
+  height: calc(100vh - 84px);
+  height: calc(100svh - 84px);
+  min-height: 520px;
+  background: #0b0c0e;
+  color: #fff;
+  overflow: hidden;
+  touch-action: pan-y;
+}
+.hero-slider__slide {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.9s ease;
+}
+.hero-slider__slide.is-on { opacity: 1; }
+.hero-slider__slide picture { position: absolute; inset: 0; }
+.hero-slider__slide img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: var(--focus, 50% 50%);
+  transform: scale(1.001);
+  will-change: transform;
+}
+.hero-slider__slide.is-on img { animation: hero-slider-zoom 5.5s ease-out forwards; }
+.hero-slider--still .hero-slider__slide.is-on img { animation: none; }
+@keyframes hero-slider-zoom { from { transform: scale(1.001); } to { transform: scale(1.05); } }
+
+/* Legibility: dark at the top (navbar) and bottom (text). */
+.hero-slider::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0) 24%, rgba(0, 0, 0, 0) 48%, rgba(0, 0, 0, 0.7) 100%);
+}
+
+.hero-slider__copy {
+  position: absolute;
+  z-index: 2;
+  inset-inline: max(48px, (100% - var(--page-max)) / 2 + 48px);
+  bottom: 96px;
+  max-width: 640px;
+  animation: hero-slider-copy 0.8s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+@keyframes hero-slider-copy { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+.hero-slider__eyebrow {
+  font-family: var(--body-font);
+  font-size: 12px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  opacity: 0.9;
+  margin-bottom: 12px;
+}
+.hero-slider__title {
+  margin: 0;
+  font-family: var(--display-font);
+  font-size: 88px;
+  font-weight: 300;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: #fff;
+}
+.hero-slider__tagline {
+  margin: 14px 0 26px;
+  font-family: var(--body-font);
+  font-size: 17px;
+  line-height: 1.45;
+  opacity: 0.92;
+}
+.hero-slider__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 24px; }
+/* The site's primary button is ink-on-paper; on a photo it has to be light. */
+.hero-slider .landing-btn--primary { background: #fff; color: #0b0c0e; }
+.hero-slider .landing-btn--primary:hover { background: #f4f2ec; }
+.hero-slider__ghost {
+  height: 48px;
+  padding: 0 4px;
+  border: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.6);
+  background: none;
+  color: #fff;
+  font-family: var(--body-font);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+}
+.hero-slider__ghost:hover { border-bottom-color: #fff; }
+
+.hero-slider__arrow {
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  width: 52px;
+  height: 52px;
+  margin-top: -26px;
+  border: 0;
+  background: none;
+  color: #fff;
+  opacity: 0.6;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.2s;
+}
+.hero-slider__arrow:hover { opacity: 1; }
+.hero-slider__arrow svg { width: 26px; height: 26px; fill: none; stroke: currentColor; stroke-width: 1.6; }
+.hero-slider__arrow--prev { inset-inline-start: 12px; }
+.hero-slider__arrow--next { inset-inline-end: 12px; }
+[dir="rtl"] .hero-slider__arrow svg { transform: scaleX(-1); }
+
+.hero-slider__controls {
+  position: absolute;
+  z-index: 2;
+  inset-inline: 0;
+  bottom: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
+.hero-slider__dot {
+  position: relative;
+  width: 28px;
+  height: 2px;
+  padding: 0;
+  border: 0;
+  background: rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  overflow: hidden;
+}
+/* Bigger tap target without changing the look. */
+.hero-slider__dot::before { content: ""; position: absolute; inset: -12px -2px; }
+.hero-slider__dot.is-on::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: #fff;
+  transform-origin: left;
+  animation: hero-slider-progress var(--slide-ms, 4500ms) linear forwards;
+}
+[dir="rtl"] .hero-slider__dot.is-on::after { transform-origin: right; }
+.hero-slider__controls.is-paused .hero-slider__dot.is-on::after { animation-play-state: paused; }
+@keyframes hero-slider-progress { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.hero-slider__pp {
+  margin-inline-start: 10px;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  background: none;
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.85;
+}
+.hero-slider__pp svg { width: 18px; height: 18px; fill: currentColor; }
+
+/* The figures band now sits under the slider on its own. */
+.landing__stats--band { border-bottom: 1px solid var(--line); }
+
+@media (max-width: 1100px) {
+  .hero-slider__title { font-size: 68px; }
+}
+@media (max-width: 860px) {
+  .hero-slider__arrow { display: none; } /* phones swipe */
+  .hero-slider__copy { inset-inline: 20px; bottom: 84px; }
+  .hero-slider__title { font-size: 52px; }
+  .hero-slider__tagline { font-size: 15px; margin: 10px 0 20px; }
+}
+/* Phones (portrait): the brands' own portrait photo at full width from the top,
+   fading into black at the bottom where the text sits. */
+@media (max-width: 700px) and (orientation: portrait) {
+  .hero-slider { height: calc(100svh - 82px); min-height: 560px; }
+  .hero-slider__slide picture { inset: 0 0 auto 0; }
+  .hero-slider__slide img {
+    position: relative;
+    inset: auto;
+    width: 100%;
+    height: auto;
+    object-fit: initial;
+    -webkit-mask-image: linear-gradient(to bottom, #000 62%, transparent 96%);
+    mask-image: linear-gradient(to bottom, #000 62%, transparent 96%);
+  }
+  .hero-slider::after { background: linear-gradient(180deg, rgba(0, 0, 0, 0.35) 0%, rgba(0, 0, 0, 0) 20%); }
+  .hero-slider__actions { flex-direction: column; align-items: stretch; gap: 10px; }
+  .hero-slider__actions .landing-btn { width: 100%; justify-content: center; }
+  .hero-slider__ghost { height: 44px; border: 1px solid rgba(255, 255, 255, 0.5); border-radius: 2px; }
+  .hero-slider__controls { bottom: 24px; }
+  .hero-slider__copy { bottom: 64px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-slider__slide { transition: none; }
+  .hero-slider__copy { animation: none; }
+}

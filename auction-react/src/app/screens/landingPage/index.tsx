@@ -2,7 +2,7 @@ import { usePageSeo } from "../../../seo/useSeo";
 import React, { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useHistory } from "react-router-dom";
-import Hero from "./Hero";
+import Hero, { HeroStats } from "./Hero";
 import Featured from "./Featured";
 import HowItWorks from "./HowItWorks";
 import CommunityGrid from "./CommunityGrid";
@@ -42,7 +42,6 @@ export default function LandingPage() {
       .catch((err) => console.error(err));
   }, [dispatch]);
 
-  const crashed = cars.filter((c) => c.category === "crashed");
   const featured = [...cars]
     .sort((a, b) => {
       const scoreA = (a.likeCount ?? 0) * 2 + (a.viewCount ?? 0);
@@ -59,7 +58,8 @@ export default function LandingPage() {
 
   return (
     <div className="landing">
-      <Hero crashed={crashed} onBrowseCars={goCars} onOpenCar={openCar} />
+      <Hero onBrowseModel={(key) => history.push(`/products?model=${key}`)} onConsultation={goConsultation} />
+      <HeroStats />
       <Featured
         cars={featured}
         savedIds={savedIds}

@@ -22,7 +22,22 @@
     "statDelivered": "CARS DELIVERED",
     "statChannels": "SOURCING CHANNELS",
     "statTransit": "KOREA → WORLDWIDE",
-    "statRepeat": "REPEAT BUYERS"
+    "statRepeat": "REPEAT BUYERS",
+    "sliderLabel": "Popular cars from Korea",
+    "seeModel": "See {{model}} for sale",
+    "prev": "Previous car",
+    "next": "Next car",
+    "play": "Play",
+    "pause": "Pause",
+    "slides": {
+      "sonata": "The classic family sedan — comfortable, economical, easy to service",
+      "sportage": "A compact SUV for the city and the road out of town",
+      "tucson": "Bold looks, roomy cabin, everyday practicality",
+      "sorento": "A seven-seat SUV for the whole family",
+      "avante": "A reliable, economical first car",
+      "santafe": "A big, comfortable SUV for long trips",
+      "carnival": "The minivan for large families and business"
+    }
   },
   "sections": {
     "crashed": "CRASHED · WITH PARTS",
