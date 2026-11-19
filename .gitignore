@@ -12,3 +12,4 @@ node_modules/
 
 # Server-only secrets for the VPS deployment
 deploy/*.env
+backups/

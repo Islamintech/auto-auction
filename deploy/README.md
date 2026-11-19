@@ -9,16 +9,28 @@ as one Docker Compose project named `auto-auction`:
 | `api` | backend + admin panel (`auction`) | ziyo.autoauction.kr |
 | `bot` | Telegram import bot (`car-microservice`) | Telegram only |
 | `tunnel` | Cloudflare Tunnel, carries the two domains in | — |
+| `mongo` | MongoDB 7: databases `Auction` (site) and `ckauto-bot` (bot) | containers only |
 
-The database is MongoDB Atlas; photos are on Cloudinary. Nothing on the VPS
-needs a backup except the three secret files below.
+Photos are on Cloudinary. The database runs here, next to the API, because
+MongoDB Atlas sat in Seoul and every query from this server (Vilnius) cost
+~280 ms. Atlas still holds a copy from the 2026-11-19 move, but it is no
+longer updated.
+
+## Backups
+
+`deploy/backup.sh` dumps the whole database every night at 03:30 (server time)
+to `/opt/auto-auction/backups/` and keeps 14 days (cron: `/etc/cron.d/auto-auction-backup`,
+log: `/var/log/auto-auction-backup.log`). The restore command is at the top of
+the script. Keep a copy somewhere other than this server too - e.g. now and then
+`scp hm:/opt/auto-auction/backups/<date>.archive.gz .`.
 
 The same server also runs the unrelated **hm** project (`/opt/hm`, ports 80/443).
 Never stop or edit it from here.
 
 ## Secrets (in `/opt/auto-auction/deploy`, not in git)
 
-- `.env` with `TUNNEL_TOKEN=` (Cloudflare Zero Trust → Networks → Tunnels → auto-auction)
+- `.env` with `TUNNEL_TOKEN=` (Cloudflare Zero Trust → Networks → Tunnels → auto-auction;
+  set it with `aa-set-token`) and `MONGO_ROOT_PASSWORD=`
 - `api.env`: the backend's variables (`MONGO_URL`, `SECRET_TOKEN`, `SESSION_SECRET`,
   `CORS_ORIGIN`, `CLOUDINARY_URL`, `IMPORT_API_TOKEN`, ...)
 - `bot.env`: car-microservice's variables. `CATALOGUE_IMPORT_TOKEN` must equal the

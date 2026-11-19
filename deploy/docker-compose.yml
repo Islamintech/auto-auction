@@ -8,7 +8,7 @@
 #   ziyo.autoauction.kr                 ->  http://api:3000
 #
 # Secrets live next to this file and are not in git:
-#   .env      TUNNEL_TOKEN=...
+#   .env      TUNNEL_TOKEN=..., MONGO_ROOT_PASSWORD=...
 #   api.env   the auction backend's variables (MONGO_URL, SECRET_TOKEN, ...)
 #   bot.env   car-microservice's variables (see car-microservice/.env.example)
 #
@@ -22,6 +22,26 @@ x-logging: &logging
     max-file: "3"
 
 services:
+  # The database lives next to the API on purpose. With MongoDB Atlas in Seoul
+  # and this server in Vilnius every query cost ~280 ms, and a car page makes
+  # several; here a query is ~1 ms. Backed up daily by deploy/backup.sh.
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    command: ["--wiredTigerCacheSizeGB", "0.25"]
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:?set MONGO_ROOT_PASSWORD in deploy/.env}
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    mem_limit: 768m
+    logging: *logging
+
   api:
     build:
       context: ../auction
@@ -30,6 +50,8 @@ services:
     environment:
       PORT: "3000"
       NODE_ENV: production
+    depends_on:
+      - mongo
     mem_limit: 512m
     logging: *logging
 
@@ -59,6 +81,7 @@ services:
       CATALOGUE_API_URL: http://api:3000
     depends_on:
       - api
+      - mongo
     mem_limit: 384m
     logging: *logging
 
@@ -73,3 +96,6 @@ services:
       - api
     mem_limit: 128m
     logging: *logging
+
+volumes:
+  mongo-data:
