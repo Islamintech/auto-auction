@@ -80,8 +80,10 @@ function parseImport(body: T): { input?: CarInput; problems: string[] } {
     // Free text: the ingestion service sends a km number, admins may type ranges.
     const carMileage = need('carMileage', str(body.carMileage)) as string;
 
-    if (carPrice !== undefined && !/^\d+$/.test(carPrice))
-        problems.push('carPrice must be whole KRW digits');
+    // One amount, or a range from the Telegram bot's USD estimate ("41560000-52640000").
+    // The site already renders both (parseKrw in auction-react/src/lib/currency.ts).
+    if (carPrice !== undefined && !/^\d+(-\d+)?$/.test(carPrice))
+        problems.push('carPrice must be whole KRW digits, or a range like 41000000-52000000');
 
     const enumField = <E extends Record<string, string>>(name: string, e: E, fallback?: E[keyof E]) => {
         if (body[name] === undefined || body[name] === '') return fallback;
